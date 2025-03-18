@@ -7,7 +7,10 @@ import authRoutes from "./routes/auth.js";
 import roomRoutes from "./routes/room.js";
 import path from "path";
 import socketSetup from "./socket.js";
+import { createServer } from "http";
+
 const app = express();
+const server = createServer(app); // ✅ HTTP 서버 생성
 // 현재 파일 경로를 import.meta.url로 얻기
 const __filename = new URL(import.meta.url).pathname;
 const __dirname = path.dirname(__filename);
@@ -30,6 +33,6 @@ app.use("/room", roomRoutes);
 const io = socketSetup(server);
 // 서버 실행
 const PORT = process.env.PORT || 4000;
-app.listen(PORT, () =>
+server.listen(PORT, () =>
   console.log(`🚀 서버 실행 중: http://localhost:${PORT}`)
 );

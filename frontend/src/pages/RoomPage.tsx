@@ -1,4 +1,4 @@
-import Whiteboard from "../components/WhiteBoard";
+import Whiteboard from "../components/Whiteboard";
 
 const RoomPage = () => {
   return (
@@ -6,7 +6,7 @@ const RoomPage = () => {
       <h1>LiveBoard - 방에 입장하셨습니다!</h1>
 
       <div style={{ marginTop: "20px" }}>
-        <Whiteboard /> {/* 화이트보드 컴포넌트 추가 */}
+        <Whiteboard />
       </div>
     </div>
   );

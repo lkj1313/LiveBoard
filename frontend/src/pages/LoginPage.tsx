@@ -1,10 +1,13 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
+import useAuthStore from "../store/authStore";
 
 const LoginPage = () => {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [error, setError] = useState<string | null>(null);
+  const setUser = useAuthStore((state) => state.setUser); // ✅ Zustand에서 `setUser` 가져오기
+
   const navigate = useNavigate();
 
   const handleLogin = async (e: React.FormEvent) => {
@@ -21,6 +24,7 @@ const LoginPage = () => {
 
       const data = await res.json();
       if (!res.ok) throw new Error(data.error);
+      setUser({ nickname: data.nickname, userId: data.userId });
 
       // 로그인 성공 후 화이트보드 페이지로 이동
       alert("로그인 성공!");

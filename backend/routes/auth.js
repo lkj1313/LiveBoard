@@ -69,7 +69,10 @@ router.post("/login", async (req, res) => {
       sameSite: "Strict", // CSRF 공격 방지
     });
 
-    res.json({ message: "로그인 성공!", token, nickname: user.nickname });
+    res.json({
+      nickname: user.nickname,
+      userId: user._id,
+    });
   } catch (error) {
     res.status(500).json({ error: "서버 오류" });
   }
