@@ -13,13 +13,21 @@ const socketSetup = (server) => {
     console.log(`✅ 사용자 연결됨: ${socket.id}`);
 
     try {
-      // ✅ 기존 저장된 그림 불러오기
+      // ✅ 기존 저장된 그림 불러오기 (null 값 제거)
       const savedDrawings = await Drawing.find();
+
       if (savedDrawings.length > 0) {
         console.log("✅ 서버에서 기존 그림 전송:", savedDrawings);
+
+        // 🔥 `null` 값이 포함된 `strokes` 필터링 후 전송
+        const filteredDrawings = savedDrawings.map((doc) => ({
+          userId: doc.userId,
+          strokes: doc.strokes.filter((stroke) => stroke !== null), // ✅ `null` 제거
+        }));
+
         socket.emit(
           "loadDrawings",
-          savedDrawings.flatMap((doc) => doc.strokes) // ✅ `strokes`만 전송
+          filteredDrawings.flatMap((doc) => doc.strokes)
         );
       }
     } catch (error) {
@@ -41,10 +49,12 @@ const socketSetup = (server) => {
       }
 
       try {
-        // ✅ 새로운 선을 추가하는 방식 (각 선을 `strokes` 배열에 추가)
+        // ✅ `null` 값을 포함하지 않는 strokes만 저장
+        const validStrokes = data.strokes.filter((stroke) => stroke !== null);
+
         const updatedDrawing = await Drawing.findOneAndUpdate(
           { userId: data.userId },
-          { $push: { strokes: { $each: data.strokes } } }, // ✅ 새로운 선(Stroke) 추가
+          { $push: { strokes: { $each: validStrokes } } },
           { new: true, upsert: true }
         );
 
@@ -52,7 +62,7 @@ const socketSetup = (server) => {
           console.log("✅ 그림이 데이터베이스에 저장됨.");
           socket.broadcast.emit("draw", {
             userId: data.userId,
-            strokes: data.strokes,
+            strokes: validStrokes,
           });
         }
       } catch (error) {
@@ -60,36 +70,41 @@ const socketSetup = (server) => {
       }
     });
 
+    // ✅ 특정 좌표에 해당하는 `stroke` 제거 (null 데이터 포함 시 제거)
     socket.on("erase", async (data) => {
       const { userId, x, y } = data;
       console.log("🧹 서버에서 지우기 요청 수신:", x, y);
 
       try {
-        // 해당 좌표를 포함하는 stroke 전체 삭제
         const updatedDrawing = await Drawing.findOneAndUpdate(
           { userId },
           {
             $pull: {
               strokes: {
-                points: {
-                  $elemMatch: {
-                    x: { $gte: x - 10, $lte: x + 10 },
-                    y: { $gte: y - 10, $lte: y + 10 },
+                $or: [
+                  {
+                    points: {
+                      $elemMatch: {
+                        x: { $gte: x - 10, $lte: x + 10 },
+                        y: { $gte: y - 10, $lte: y + 10 },
+                      },
+                    },
                   },
-                },
+                  { points: null }, // ✅ `null` 값이 포함된 stroke 제거
+                ],
               },
             },
           },
           { new: true }
         );
 
-        io.emit("erase", { userId, x, y }); // ✅ 클라이언트에 지우기 반영
+        io.emit("erase", { userId, x, y });
       } catch (error) {
         console.error("❌ 지우기 실패:", error);
       }
     });
 
-    // ✅ 특정 유저의 전체 그림 삭제
+    // ✅ 특정 유저의 전체 그림 삭제 (null 제거)
     socket.on("clear", async (data) => {
       const { userId } = data;
 
@@ -105,7 +120,7 @@ const socketSetup = (server) => {
           { new: true }
         );
 
-        io.emit("clear", { userId }); // ✅ 클라이언트에 해당 유저의 그림 삭제 알림
+        io.emit("clear", { userId });
         console.log(`🧹 ${userId}의 모든 그림 삭제 완료`);
       } catch (error) {
         console.error("❌ 전체 지우기 실패:", error);
