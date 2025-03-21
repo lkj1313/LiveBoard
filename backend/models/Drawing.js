@@ -1,20 +1,19 @@
+// models/Drawing.ts
 import mongoose from "mongoose";
 
 const PointSchema = new mongoose.Schema({
-  x: { type: Number, required: true },
-  y: { type: Number, required: true },
+  x: Number,
+  y: Number,
 });
 
 const StrokeSchema = new mongoose.Schema({
-  userId: { type: String, required: true }, // ✅ 누가 그렸는지 저장
-  points: [PointSchema], // ✅ 하나의 선(stroke)에 여러 좌표 저장
+  userId: { type: String, required: true }, // 누가 그렸는지
+  points: [PointSchema], // 그 선의 점들
 });
 
 const DrawingSchema = new mongoose.Schema({
-  userId: { type: String, required: true }, // ✅ 유저 ID
-  strokes: [StrokeSchema], // ✅ 여러 개의 선(stroke) 저장 가능
+  roomId: { type: String, required: true }, // 방 구분
+  strokes: [StrokeSchema], // 여러 선들
 });
 
-const Drawing = mongoose.model("Drawing", DrawingSchema);
-
-export default Drawing;
+export default mongoose.model("Drawing", DrawingSchema);

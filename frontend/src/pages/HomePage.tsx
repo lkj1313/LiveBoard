@@ -27,6 +27,7 @@ const HomePage = () => {
               <Link
                 key={room._id}
                 to={`/room/${room._id}`}
+                state={{ roomName: room.name }}
                 className="block p-4 bg-blue-500 text-white rounded-lg hover:bg-blue-600 transition"
               >
                 {room.name}

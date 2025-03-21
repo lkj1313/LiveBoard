@@ -1,219 +1,213 @@
-import { useRef, useState, useEffect } from "react";
-import useAuthStore from "../store/authStore";
+import { useEffect, useRef, useState } from "react";
 import socket, { connectSocket } from "../utils/socket";
-
-interface User {
-  userId: string;
-  nickname: string;
-}
+import useAuthStore from "../store/authStore";
+import { useParams } from "react-router-dom";
 
 interface Point {
   x: number;
   y: number;
 }
 
-type Stroke = { userId: string; points: Point[] };
-
-interface DrawData {
+interface Stroke {
   userId: string;
-  strokes: Stroke[];
+  points: Point[];
 }
 
-interface EraseData {
-  userId: string;
-  x: number;
-  y: number;
-}
-
-interface ClearData {
-  userId: string;
-}
-
-const WhiteBoard: React.FC = () => {
+const Whiteboard = () => {
   const canvasRef = useRef<HTMLCanvasElement | null>(null);
   const [isDrawing, setIsDrawing] = useState(false);
+  const [strokes, setStrokes] = useState<Stroke[]>([]);
   const [isErasing, setIsErasing] = useState(false);
-  const [allStrokes, setAllStrokes] = useState<Stroke[]>([]);
-  const user: User | null = useAuthStore((state) => state.user);
+  const currentStrokeRef = useRef<Stroke | null>(null); // ✅ 추가
+  const user = useAuthStore((state) => state.user);
+  const { id: roomId } = useParams();
 
-  // ✅ 마운트 시 소켓 즉시 연결
-  useEffect(() => {
-    connectSocket();
-  }, []);
-
-  // ✅ 소켓 이벤트 등록
-  useEffect(() => {
-    socket.on("connect", () => console.log("✅ 소켓 연결됨:", socket.id));
-
-    socket.on("loadDrawings", (savedDrawings: Stroke[]) => {
-      if (!savedDrawings || savedDrawings.length === 0) return;
-      setAllStrokes(savedDrawings);
-    });
-
-    socket.on("draw", (data: DrawData) => {
-      setAllStrokes((prevStrokes) => [...prevStrokes, ...data.strokes]);
-      console.log("hi", allStrokes);
-    });
-
-    socket.on("erase", (data: EraseData) => {
-      setAllStrokes((prevStrokes) =>
-        prevStrokes.filter(
-          (stroke) =>
-            !stroke.points.some(
-              (point) =>
-                Math.abs(point.x - data.x) <= 10 &&
-                Math.abs(point.y - data.y) <= 10
-            )
-        )
-      );
-    });
-
-    socket.on("clear", (data: ClearData) => {
-      setAllStrokes((prevStrokes) =>
-        prevStrokes.filter((stroke) => stroke.userId !== data.userId)
-      );
-    });
-
-    return () => {
-      socket.disconnect();
-    };
-  }, []);
-
-  useEffect(() => {
-    redrawCanvas();
-  }, [allStrokes]);
-
-  // **그리기 시작**
-  const startDrawing = (e: React.MouseEvent<HTMLCanvasElement>) => {
-    if (!user || isErasing) return;
-    setIsDrawing(true);
+  const handleMouseDown = (e: React.MouseEvent<HTMLCanvasElement>) => {
     const { offsetX, offsetY } = e.nativeEvent;
-    setAllStrokes((prevStrokes) => [
-      ...prevStrokes,
-      { userId: user.userId, points: [{ x: offsetX, y: offsetY }] },
-    ]);
-  };
 
-  // **그리기 중**
-  const draw = (e: React.MouseEvent<HTMLCanvasElement>) => {
-    if (!isDrawing || !user || isErasing) return;
-    const { offsetX, offsetY } = e.nativeEvent;
-    setAllStrokes((prevStrokes) => {
-      const updatedStrokes = [...prevStrokes];
-      const lastStroke = updatedStrokes[updatedStrokes.length - 1];
-      if (!lastStroke || !Array.isArray(lastStroke.points)) return prevStrokes;
-      lastStroke.points.push({ x: offsetX, y: offsetY });
-      return updatedStrokes;
-    });
-  };
+    if (isErasing) {
+      erase(offsetX, offsetY);
+      return;
+    }
 
-  // **그리기 종료**
-  const stopDrawing = () => {
     if (!user) return;
-    setIsDrawing(false);
-    socket.emit("draw", {
+
+    const newStroke: Stroke = {
       userId: user.userId,
-      strokes: [allStrokes[allStrokes.length - 1]],
-    });
+      points: [{ x: offsetX, y: offsetY }],
+    };
+
+    currentStrokeRef.current = newStroke; // ✅ 현재 stroke 저장
+    setStrokes((prev) => [...prev, newStroke]);
+    setIsDrawing(true);
   };
 
-  // **지우기: 클릭된 위치에서 가까운 선을 삭제**
-  const erase = (e: React.MouseEvent<HTMLCanvasElement>) => {
-    if (!user || !isErasing) return;
+  const draw = (e: React.MouseEvent<HTMLCanvasElement>) => {
+    if (!isDrawing || !currentStrokeRef.current) return;
     const { offsetX, offsetY } = e.nativeEvent;
 
-    setAllStrokes((prevStrokes) => {
-      console.log("🖼️ 기존 allStrokes:", prevStrokes);
+    currentStrokeRef.current.points.push({ x: offsetX, y: offsetY });
 
-      const updatedStrokes: Stroke[] = prevStrokes
-        .map((stroke) => {
-          // ✅ 본인의 선만 삭제 가능하도록 조건 추가
-          if (stroke.userId !== user.userId) {
-            const newPoints = stroke.points.filter(
-              (point) =>
-                Math.abs(point.x - offsetX) > 10 ||
-                Math.abs(point.y - offsetY) > 10
-            );
-
-            // ✅ 지운 후에도 남은 점이 있으면 유지, 없으면 제거
-            return newPoints.length > 0
-              ? { ...stroke, points: newPoints }
-              : null;
-          }
-
-          // ✅ 상대방의 선은 그대로 유지
-          return stroke;
-        })
-        .filter((stroke): stroke is Stroke => stroke !== null); // ✅ null 제거
-
-      console.log("🆕 업데이트된 allStrokes:", updatedStrokes);
-      return updatedStrokes;
-    });
-
-    // 🔥 서버에도 지우기 요청 보내기 (본인의 선만)
-    socket.emit("erase", {
-      userId: user.userId,
-      x: offsetX,
-      y: offsetY,
+    setStrokes((prevStrokes) => {
+      const updated = [...prevStrokes];
+      const lastStroke = updated[updated.length - 1];
+      lastStroke.points.push({ x: offsetX, y: offsetY });
+      return updated;
     });
   };
 
-  // **전체 그림 삭제**
+  const stopDrawing = () => {
+    setIsDrawing(false);
+    if (currentStrokeRef.current) {
+      socket.emit("draw", {
+        roomId,
+        stroke: currentStrokeRef.current,
+      });
+      currentStrokeRef.current = null; // ✅ 초기화
+    }
+  };
+
+  const erase = (x: number, y: number) => {
+    if (!user) return;
+
+    socket.emit("erase", {
+      roomId,
+      userId: user.userId,
+      x,
+      y,
+    });
+
+    setStrokes((prev) =>
+      prev.filter((stroke) => {
+        // stroke가 없으면 제거
+        if (!stroke) return false;
+
+        // 내 선이 아니면 무조건 유지
+        if (stroke.userId !== user?.userId) return true;
+
+        // 내 선이면서 클릭 근처에 있는 점이 있으면 제거
+        const isNearClick = stroke.points.some((point) => {
+          return Math.abs(point.x - x) < 10 && Math.abs(point.y - y) < 10;
+        });
+
+        return !isNearClick;
+      })
+    );
+  };
+
   const clearCanvas = () => {
     if (!user) return;
-    socket.emit("clear", { userId: user.userId });
+
+    setStrokes((prev) =>
+      prev.filter((stroke) => stroke.userId !== user.userId)
+    );
+
+    socket.emit("clear", {
+      roomId,
+      userId: user.userId,
+    });
   };
 
-  // **캔버스 다시 그리기**
   const redrawCanvas = () => {
     const canvas = canvasRef.current;
-    if (!canvas) return;
-    const ctx = canvas.getContext("2d");
-    if (!ctx) return;
+    const ctx = canvas?.getContext("2d");
+    if (!canvas || !ctx) return;
+
     ctx.clearRect(0, 0, canvas.width, canvas.height);
-    allStrokes.forEach((stroke) => {
+
+    strokes.forEach((stroke) => {
       if (!stroke || !Array.isArray(stroke.points)) return;
       ctx.beginPath();
       stroke.points.forEach((point, index) => {
-        if (index === 0) ctx.moveTo(point.x, point.y);
-        else ctx.lineTo(point.x, point.y);
+        if (index === 0) {
+          ctx.moveTo(point.x, point.y);
+        } else {
+          ctx.lineTo(point.x, point.y);
+        }
       });
       ctx.stroke();
     });
   };
 
+  useEffect(() => {
+    redrawCanvas();
+  }, [strokes]);
+
+  useEffect(() => {
+    connectSocket();
+
+    socket.on("connect", () => {
+      console.log("✅ 소켓 연결됨:", socket.id);
+      socket.emit("join", roomId);
+    });
+
+    socket.on("loadDrawings", (strokes) => {
+      console.log("🖼️ 서버로부터 그림 받아옴:", strokes);
+      setStrokes(strokes);
+    });
+
+    socket.on("draw", (stroke) => {
+      setStrokes((prev) => [...prev, stroke]);
+    });
+
+    socket.on("clear", ({ userId }) => {
+      setStrokes((prev) => prev.filter((stroke) => stroke.userId !== userId));
+    });
+
+    return () => {
+      socket.disconnect();
+    };
+  }, [roomId]);
+
   return (
-    <div>
-      <div className="flex space-x-2 mb-2">
-        <button
-          onClick={() => setIsErasing(false)}
-          className={`m-2 p-2 border rounded ${
-            !isErasing ? "bg-blue-500 text-white" : "bg-gray-300"
-          }`}
-        >
-          🖊️ 그리기 모드
-        </button>
-        <button
-          onClick={() => setIsErasing(true)}
-          className={`m-2 p-2 border rounded ${
-            isErasing ? "bg-red-500 text-white" : "bg-gray-300"
-          }`}
-        >
-          🧹 지우기 모드
-        </button>
-        <button
-          onClick={clearCanvas}
-          className="m-2 p-2 border rounded bg-red-500 text-white"
-        >
-          ❌ 전체 지우기
-        </button>
-      </div>
+    <div style={{ marginBottom: "10px" }}>
+      <button
+        onClick={() => setIsErasing(false)}
+        style={{
+          padding: "8px 12px",
+          marginRight: "10px",
+          backgroundColor: !isErasing ? "#3b82f6" : "#e5e7eb",
+          color: !isErasing ? "#fff" : "#000",
+          border: "1px solid #ccc",
+          borderRadius: "4px",
+        }}
+      >
+        ✏️ 그리기
+      </button>
+      <button
+        onClick={() => setIsErasing(true)}
+        style={{
+          padding: "8px 12px",
+          backgroundColor: isErasing ? "#ef4444" : "#e5e7eb",
+          color: isErasing ? "#fff" : "#000",
+          border: "1px solid #ccc",
+          borderRadius: "4px",
+        }}
+      >
+        🧹 지우기
+      </button>
+      <button
+        onClick={clearCanvas}
+        style={{
+          padding: "8px 12px",
+          marginLeft: "10px",
+          backgroundColor: "#f87171",
+          color: "#fff",
+          border: "1px solid #ccc",
+          borderRadius: "4px",
+        }}
+      >
+        ❌ 전체 지우기
+      </button>
       <canvas
         ref={canvasRef}
         width={800}
         height={600}
-        className="border border-black"
-        onMouseDown={isErasing ? erase : startDrawing} // ✅ 지우기는 클릭 시 실행
+        style={{
+          border: "1px solid black",
+          cursor: isErasing ? "cell" : "crosshair",
+        }}
+        onMouseDown={handleMouseDown}
         onMouseMove={draw}
         onMouseUp={stopDrawing}
         onMouseLeave={stopDrawing}
@@ -222,4 +216,4 @@ const WhiteBoard: React.FC = () => {
   );
 };
 
-export default WhiteBoard;
+export default Whiteboard;
