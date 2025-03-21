@@ -8,6 +8,7 @@ const PointSchema = new mongoose.Schema({
 
 const StrokeSchema = new mongoose.Schema({
   userId: { type: String, required: true }, // 누가 그렸는지
+  nickname: String,
   points: [PointSchema], // 그 선의 점들
 });
 

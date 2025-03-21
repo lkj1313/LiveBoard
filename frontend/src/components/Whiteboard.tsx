@@ -10,6 +10,7 @@ interface Point {
 
 interface Stroke {
   userId: string;
+  nickname: string;
   points: Point[];
 }
 
@@ -21,6 +22,30 @@ const Whiteboard = () => {
   const currentStrokeRef = useRef<Stroke | null>(null); // ✅ 추가
   const user = useAuthStore((state) => state.user);
   const { id: roomId } = useParams();
+  const [hoveredNick, setHoveredNick] = useState<string | null>(null);
+  const [hoverPos, setHoverPos] = useState<{ x: number; y: number } | null>(
+    null
+  );
+  const handleHover = (e: React.MouseEvent<HTMLCanvasElement>) => {
+    if (isDrawing) return; // 그리고 있는 중엔 무시
+
+    const { offsetX, offsetY } = e.nativeEvent;
+
+    const found = strokes.find((stroke) =>
+      stroke.points.some(
+        (point) =>
+          Math.abs(point.x - offsetX) < 6 && Math.abs(point.y - offsetY) < 6
+      )
+    );
+
+    if (found) {
+      setHoveredNick(found.nickname);
+      setHoverPos({ x: offsetX, y: offsetY });
+    } else {
+      setHoveredNick(null);
+      setHoverPos(null);
+    }
+  };
 
   const handleMouseDown = (e: React.MouseEvent<HTMLCanvasElement>) => {
     const { offsetX, offsetY } = e.nativeEvent;
@@ -34,6 +59,7 @@ const Whiteboard = () => {
 
     const newStroke: Stroke = {
       userId: user.userId,
+      nickname: user.nickname,
       points: [{ x: offsetX, y: offsetY }],
     };
 
@@ -58,9 +84,10 @@ const Whiteboard = () => {
 
   const stopDrawing = () => {
     setIsDrawing(false);
-    if (currentStrokeRef.current) {
+    if (currentStrokeRef.current && user) {
       socket.emit("draw", {
         roomId,
+        nickname: user.nickname,
         stroke: currentStrokeRef.current,
       });
       currentStrokeRef.current = null; // ✅ 초기화
@@ -87,7 +114,7 @@ const Whiteboard = () => {
 
         // 내 선이면서 클릭 근처에 있는 점이 있으면 제거
         const isNearClick = stroke.points.some((point) => {
-          return Math.abs(point.x - x) < 10 && Math.abs(point.y - y) < 10;
+          return Math.abs(point.x - x) < 5 && Math.abs(point.y - y) < 5;
         });
 
         return !isNearClick;
@@ -208,10 +235,31 @@ const Whiteboard = () => {
           cursor: isErasing ? "cell" : "crosshair",
         }}
         onMouseDown={handleMouseDown}
-        onMouseMove={draw}
+        onMouseMove={(e) => {
+          draw(e);
+          handleHover(e); // ✨ hover 감지
+        }}
         onMouseUp={stopDrawing}
         onMouseLeave={stopDrawing}
-      />
+      />{" "}
+      {hoveredNick && hoverPos && (
+        <div
+          style={{
+            position: "absolute",
+            top: hoverPos.y + 10,
+            left: hoverPos.x + 10,
+            background: "rgba(0, 0, 0, 0.7)",
+            color: "#fff",
+            padding: "4px 8px",
+            fontSize: "12px",
+            borderRadius: "6px",
+            pointerEvents: "none",
+            whiteSpace: "nowrap",
+          }}
+        >
+          {hoveredNick}
+        </div>
+      )}
     </div>
   );
 };
