@@ -60,4 +60,32 @@ router.get("/rooms", async (req, res) => {
     res.status(500).json({ error: "서버 오류" });
   }
 });
+
+// ✅ 배경 이미지/PDF 저장용
+router.put("/:roomId/background", async (req, res) => {
+  const { roomId } = req.params;
+  const { backgroundUrl } = req.body;
+
+  try {
+    const room = await Room.findByIdAndUpdate(
+      roomId,
+      { backgroundUrl },
+      { new: true }
+    );
+    if (!room) return res.status(404).json({ message: "Room not found" });
+    res.json(room);
+  } catch (err) {
+    res.status(500).json({ error: "Failed to update background" });
+  }
+});
+// ✅ 특정 방 정보 조회
+router.get("/:roomId", async (req, res) => {
+  try {
+    const room = await Room.findById(req.params.roomId);
+    if (!room) return res.status(404).json({ message: "Room not found" });
+    res.json(room);
+  } catch (err) {
+    res.status(500).json({ error: "Failed to load room" });
+  }
+});
 export default router;

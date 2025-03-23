@@ -1,1 +1,7 @@
 @import "tailwindcss";
+.react-pdf__Page__textContent {
+  display: none !important;
+}
+.react-pdf__Page__annotations {
+  display: none !important;
+}

@@ -2,6 +2,9 @@ import { useEffect, useRef, useState } from "react";
 import socket, { connectSocket } from "../utils/socket";
 import useAuthStore from "../store/authStore";
 import { useParams } from "react-router-dom";
+import { ref, uploadBytes, getDownloadURL } from "firebase/storage";
+import { storage } from "../utils/firebase";
+import PDFRenderer from "../components/PDFRenderer";
 
 interface Point {
   x: number;
@@ -26,6 +29,9 @@ const Whiteboard = () => {
   const [hoverPos, setHoverPos] = useState<{ x: number; y: number } | null>(
     null
   );
+  const [backgroundUrl, setBackgroundUrl] = useState<string | null>(null);
+  const [pdfSize, setPdfSize] = useState({ width: 800, height: 600 });
+  console.log(backgroundUrl);
   const handleHover = (e: React.MouseEvent<HTMLCanvasElement>) => {
     if (isDrawing) return; // 그리고 있는 중엔 무시
 
@@ -156,6 +162,23 @@ const Whiteboard = () => {
     });
   };
 
+  const handleFileUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    const storageRef = ref(storage, `uploads/${file.name}-${Date.now()}`);
+    await uploadBytes(storageRef, file);
+    const url = await getDownloadURL(storageRef);
+    setBackgroundUrl(url);
+
+    // ✅ 서버에 backgroundUrl 저장 요청
+    await fetch(`http://localhost:4000/room/${roomId}/background`, {
+      method: "PUT",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ backgroundUrl: url }),
+    });
+  };
+
   useEffect(() => {
     redrawCanvas();
   }, [strokes]);
@@ -176,90 +199,125 @@ const Whiteboard = () => {
     socket.on("draw", (stroke) => {
       setStrokes((prev) => [...prev, stroke]);
     });
+    socket.on("erase", ({ userId, x, y }) => {
+      setStrokes((prev) =>
+        prev.filter((stroke) => {
+          if (!stroke) return false;
 
+          // 지운 사람이 그린 stroke만 검사
+          if (stroke.userId !== userId) return true;
+
+          // 해당 stroke의 point 중 가까운 게 있다면 제거
+          const isNearClick = stroke.points.some(
+            (point) => Math.abs(point.x - x) < 5 && Math.abs(point.y - y) < 5
+          );
+
+          return !isNearClick;
+        })
+      );
+    });
     socket.on("clear", ({ userId }) => {
       setStrokes((prev) => prev.filter((stroke) => stroke.userId !== userId));
     });
 
     return () => {
+      socket.off("draw");
+      socket.off("erase");
+      socket.off("clear");
+      socket.off("loadDrawings");
       socket.disconnect();
     };
   }, [roomId]);
-
+  useEffect(() => {
+    const fetchRoom = async () => {
+      const res = await fetch(`http://localhost:4000/room/${roomId}`);
+      const data = await res.json();
+      if (data.backgroundUrl) {
+        setBackgroundUrl(data.backgroundUrl);
+      }
+    };
+    fetchRoom();
+  }, [roomId]);
   return (
-    <div style={{ marginBottom: "10px" }}>
-      <button
-        onClick={() => setIsErasing(false)}
-        style={{
-          padding: "8px 12px",
-          marginRight: "10px",
-          backgroundColor: !isErasing ? "#3b82f6" : "#e5e7eb",
-          color: !isErasing ? "#fff" : "#000",
-          border: "1px solid #ccc",
-          borderRadius: "4px",
-        }}
-      >
-        ✏️ 그리기
-      </button>
-      <button
-        onClick={() => setIsErasing(true)}
-        style={{
-          padding: "8px 12px",
-          backgroundColor: isErasing ? "#ef4444" : "#e5e7eb",
-          color: isErasing ? "#fff" : "#000",
-          border: "1px solid #ccc",
-          borderRadius: "4px",
-        }}
-      >
-        🧹 지우기
-      </button>
-      <button
-        onClick={clearCanvas}
-        style={{
-          padding: "8px 12px",
-          marginLeft: "10px",
-          backgroundColor: "#f87171",
-          color: "#fff",
-          border: "1px solid #ccc",
-          borderRadius: "4px",
-        }}
-      >
-        ❌ 전체 지우기
-      </button>
-      <canvas
-        ref={canvasRef}
-        width={800}
-        height={600}
-        style={{
-          border: "1px solid black",
-          cursor: isErasing ? "cell" : "crosshair",
-        }}
-        onMouseDown={handleMouseDown}
-        onMouseMove={(e) => {
-          draw(e);
-          handleHover(e); // ✨ hover 감지
-        }}
-        onMouseUp={stopDrawing}
-        onMouseLeave={stopDrawing}
-      />{" "}
-      {hoveredNick && hoverPos && (
-        <div
-          style={{
-            position: "absolute",
-            top: hoverPos.y + 10,
-            left: hoverPos.x + 10,
-            background: "rgba(0, 0, 0, 0.7)",
-            color: "#fff",
-            padding: "4px 8px",
-            fontSize: "12px",
-            borderRadius: "6px",
-            pointerEvents: "none",
-            whiteSpace: "nowrap",
-          }}
+    <div className="flex flex-col items-start h-full w-full">
+      {/* ✅ 버튼 바 영역 - 캔버스 위쪽 */}
+      <div className="flex gap-2 mb-4  py-2 bg-white bg-opacity-80 rounded shadow z-10">
+        <button
+          onClick={() => setIsErasing(false)}
+          className={`px-3 py-2 rounded border ${
+            !isErasing
+              ? "bg-blue-500 text-white"
+              : "bg-gray-200 text-black border-gray-300"
+          }`}
         >
-          {hoveredNick}
+          ✏️ 그리기
+        </button>
+        <button
+          onClick={() => setIsErasing(true)}
+          className={`px-3 py-2 rounded border ${
+            isErasing
+              ? "bg-red-500 text-white"
+              : "bg-gray-200 text-black border-gray-300"
+          }`}
+        >
+          🧹 지우기
+        </button>
+        <button
+          onClick={clearCanvas}
+          className="px-3 py-2 rounded border bg-red-400 text-white border-gray-300"
+        >
+          ❌ 전체 지우기
+        </button>
+        <input
+          type="file"
+          accept="application/pdf,image/*"
+          onChange={handleFileUpload}
+          className="px-3 py-2 rounded border border-gray-300 bg-lime-400 text-black"
+        />
+      </div>
+
+      {/* ✅ 캔버스 + 백그라운드 (하단) */}
+      <div className="relative w-[800px] h-[800px]">
+        <div className="relative min-h-full">
+          {backgroundUrl?.includes(".pdf") ? (
+            <PDFRenderer url={backgroundUrl} onSizeChange={setPdfSize} />
+          ) : (
+            backgroundUrl && (
+              <img
+                src={backgroundUrl}
+                alt="background"
+                className="absolute top-0 left-0 w-[800px] h-[600px] object-contain pointer-events-none z-0"
+              />
+            )
+          )}
+
+          <canvas
+            ref={canvasRef}
+            width={pdfSize.width}
+            height={pdfSize.height}
+            className={`absolute top-0 left-0 border border-black z-10 ${
+              isErasing ? "cursor-cell" : "cursor-crosshair"
+            }  overflow-auto`}
+            onMouseDown={handleMouseDown}
+            onMouseMove={(e) => {
+              draw(e);
+              handleHover(e);
+            }}
+            onMouseUp={stopDrawing}
+            onMouseLeave={stopDrawing}
+          />
+
+          {/* 호버 닉네임 */}
+          {hoveredNick && hoverPos && (
+            <div
+              className="absolute z-20 bg-black bg-opacity-70 text-white text-xs px-2 py-1 rounded pointer-events-none whitespace-nowrap"
+              style={{ top: hoverPos.y + 10, left: hoverPos.x + 10 }}
+            >
+              {hoveredNick}
+            </div>
+          )}
         </div>
-      )}
+      </div>
     </div>
   );
 };
