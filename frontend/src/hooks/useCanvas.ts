@@ -91,7 +91,7 @@ const useCanvas = ({ user, roomId }: UseCanvasProps) => {
     const updated = strokes.filter((stroke) => {
       if (stroke.userId !== user.userId) return true;
       const isNear = stroke.points.some(
-        (p) => Math.abs(p.x - x) < 5 && Math.abs(p.y - y) < 5
+        (p) => Math.abs(p.x - x) < 10 && Math.abs(p.y - y) < 10
       );
       return !isNear;
     });
