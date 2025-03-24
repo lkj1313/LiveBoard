@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
-
+const SERVER_URL = import.meta.env.VITE_SERVER_URL;
 const CreateRoomPage = () => {
   const [roomName, setRoomName] = useState("");
   const [image, setImage] = useState<File | null>(null); // 이미지 파일 상태 관리
@@ -41,7 +41,7 @@ const CreateRoomPage = () => {
     if (image) formData.append("image", image);
 
     try {
-      const response = await fetch("http://localhost:4000/room/create", {
+      const response = await fetch(`${SERVER_URL}/room/create`, {
         method: "POST",
         body: formData, // FormData로 보내서 이미지 파일을 전송
         credentials: "include",

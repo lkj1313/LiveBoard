@@ -1,11 +1,11 @@
 import { useState, useEffect } from "react";
 import { Link } from "react-router-dom";
-
+const SERVER_URL = import.meta.env.VITE_SERVER_URL;
 const HomePage = () => {
   const [rooms, setRooms] = useState<any[]>([]);
 
   useEffect(() => {
-    fetch("http://localhost:4000/room/rooms")
+    fetch(`${SERVER_URL}/room/rooms`)
       .then((res) => res.json())
       .then((data) => setRooms(data.rooms));
   }, []);
@@ -30,6 +30,7 @@ const HomePage = () => {
                 state={{ roomName: room.name }}
                 className="block p-4 bg-blue-500 text-white rounded-lg hover:bg-blue-600 transition"
               >
+                {room.image}
                 {room.name}
               </Link>
             ))

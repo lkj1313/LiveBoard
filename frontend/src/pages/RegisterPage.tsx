@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { useNavigate, Link } from "react-router-dom";
-
+const SERVER_URL = import.meta.env.VITE_SERVER_URL;
 const RegisterPage = () => {
   const [nickname, setNickname] = useState("");
   const [email, setEmail] = useState("");
@@ -24,7 +24,7 @@ const RegisterPage = () => {
     }
 
     try {
-      const res = await fetch("http://localhost:4000/auth/register", {
+      const res = await fetch(`${SERVER_URL}/auth/register`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ nickname, email, password }),

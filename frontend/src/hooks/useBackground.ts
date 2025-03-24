@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import { ref, uploadBytes, getDownloadURL } from "firebase/storage";
 import { storage } from "../utils/firebase";
-
+const SERVER_URL = import.meta.env.VITE_SERVER_URL;
 const useBackground = (roomId: string | undefined) => {
   const [backgroundUrl, setBackgroundUrl] = useState<string | null>(null);
   const [pdfSize, setPdfSize] = useState({ width: 1000, height: 1000 });
@@ -16,7 +16,7 @@ const useBackground = (roomId: string | undefined) => {
     setBackgroundUrl(url);
     setFileName(file.name); // ✅ 업로드 후 파일명 저장
 
-    await fetch(`http://localhost:4000/room/${roomId}/background`, {
+    await fetch(`${SERVER_URL}/room/${roomId}/background`, {
       method: "PUT",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ backgroundUrl: url }),
@@ -29,7 +29,7 @@ const useBackground = (roomId: string | undefined) => {
 
     if (!roomId) return;
 
-    await fetch(`http://localhost:4000/room/${roomId}/background`, {
+    await fetch(`${SERVER_URL}/room/${roomId}/background`, {
       method: "PUT",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ backgroundUrl: null }),
@@ -39,7 +39,7 @@ const useBackground = (roomId: string | undefined) => {
     if (!roomId) return;
 
     const fetchRoom = async () => {
-      const res = await fetch(`http://localhost:4000/room/${roomId}`);
+      const res = await fetch(`${SERVER_URL}/room/${roomId}`);
       const data = await res.json();
 
       if (data.backgroundUrl) {

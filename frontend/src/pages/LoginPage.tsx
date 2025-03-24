@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import useAuthStore from "../store/authStore";
-
+const SERVER_URL = import.meta.env.VITE_SERVER_URL;
 const LoginPage = () => {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -15,7 +15,7 @@ const LoginPage = () => {
     setError(null);
 
     try {
-      const res = await fetch("http://localhost:4000/auth/login", {
+      const res = await fetch(`${SERVER_URL}/auth/login`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ email, password }),
