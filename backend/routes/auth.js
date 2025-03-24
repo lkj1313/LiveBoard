@@ -64,9 +64,9 @@ router.post("/login", async (req, res) => {
 
     // 쿠키에 저장
     res.cookie("token", token, {
-      httpOnly: true, // JavaScript에서 쿠키를 읽을 수 없게 설정
-      secure: process.env.NODE_ENV === "production", // HTTPS에서만 쿠키 전송
-      sameSite: "Strict", // CSRF 공격 방지
+      httpOnly: true,
+      secure: false, // ✅ HTTPS 아니므로 false
+      sameSite: "Lax", // ✅ cross-site GET은 허용
     });
 
     res.json({
