@@ -65,5 +65,10 @@ export const socketHandler = (io) => {
         console.error("❌ 전체 삭제 실패:", error);
       }
     });
+    socket.on("replaceStrokes", async ({ roomId, strokes }) => {
+      await Drawing.updateOne({ roomId }, { $set: { strokes } });
+
+      socket.to(roomId).emit("loadDrawings", strokes);
+    });
   });
 };

@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 
 import useAuthStore from "../store/authStore";
 import { useParams } from "react-router-dom";
@@ -9,6 +9,7 @@ import useCanvas from "../hooks/useCanvas";
 import useSocketHandlers from "../hooks/useSocketHandlers";
 import useBackground from "../hooks/useBackground";
 import DrawingCanvas from "./DrawingCanvas";
+
 const Whiteboard = () => {
   const [isErasing, setIsErasing] = useState(false);
 
@@ -27,6 +28,7 @@ const Whiteboard = () => {
     stopDrawing, // 마우스 뗄 때 그리기 종료
     handleHover, // 닉네임 hover 감지
     clearCanvas, // 전체 지우기 (내 stroke만)
+    undo,
   } = useCanvas({ user, roomId });
 
   // 🌐 소켓 연결 및 실시간 동기화 처리 (서버에서 받아온 stroke 동기화)
@@ -41,7 +43,16 @@ const Whiteboard = () => {
     clearBackground, // background 이미지 또는 pdf의 url 초기화
     fileName,
   } = useBackground(roomId);
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.ctrlKey && e.key === "z") {
+        undo(); // useCanvas 훅에서 받아온 함수
+      }
+    };
 
+    window.addEventListener("keydown", handleKeyDown);
+    return () => window.removeEventListener("keydown", handleKeyDown);
+  }, [undo]);
   return (
     <div className="flex flex-col items-center h-full w-full">
       <Toolbar
@@ -55,41 +66,39 @@ const Whiteboard = () => {
       />
 
       {/*  캔버스 + 백그라운드 (하단) */}
-      <div className="relative w-[1000px] h-[800px]">
-        <div className="relative min-h-full">
-          {backgroundUrl?.includes(".pdf") ? (
-            <PDFRenderer url={backgroundUrl} onSizeChange={setPdfSize} />
-          ) : (
-            backgroundUrl && (
-              <img
-                src={backgroundUrl}
-                alt="background"
-                className="absolute top-0 left-0 w-[800px] h-[600px] object-contain pointer-events-none z-0"
-              />
-            )
-          )}
+      <div className="relative w-[1000px] ">
+        {backgroundUrl?.includes(".pdf") ? (
+          <PDFRenderer url={backgroundUrl} onSizeChange={setPdfSize} />
+        ) : (
+          backgroundUrl && (
+            <img
+              src={backgroundUrl}
+              alt="background"
+              className="absolute top-0 left-0 w-[800px] h-[600px] object-contain pointer-events-none z-0"
+            />
+          )
+        )}
 
-          <DrawingCanvas
-            canvasRef={canvasRef}
-            width={pdfSize.width}
-            height={pdfSize.height}
-            isErasing={isErasing}
-            handleMouseDown={(e) => handleMouseDown(e, isErasing)}
-            draw={draw}
-            handleHover={handleHover}
-            stopDrawing={stopDrawing}
-          />
+        <DrawingCanvas
+          canvasRef={canvasRef}
+          width={pdfSize.width}
+          height={pdfSize.height}
+          isErasing={isErasing}
+          handleMouseDown={(e) => handleMouseDown(e, isErasing)}
+          draw={draw}
+          handleHover={handleHover}
+          stopDrawing={stopDrawing}
+        />
 
-          {/* 호버 닉네임 */}
-          {hoveredNick && hoverPos && (
-            <div
-              className="absolute z-20 bg-black bg-opacity-70 text-white text-xs px-2 py-1 rounded pointer-events-none whitespace-nowrap"
-              style={{ top: hoverPos.y + 10, left: hoverPos.x + 10 }}
-            >
-              {hoveredNick}
-            </div>
-          )}
-        </div>
+        {/* 호버 닉네임 */}
+        {hoveredNick && hoverPos && (
+          <div
+            className="absolute z-20 bg-black bg-opacity-70 text-white text-xs px-2 py-1 rounded pointer-events-none whitespace-nowrap"
+            style={{ top: hoverPos.y + 10, left: hoverPos.x + 10 }}
+          >
+            {hoveredNick}
+          </div>
+        )}
       </div>
     </div>
   );

@@ -4,7 +4,7 @@ import { storage } from "../utils/firebase";
 
 const useBackground = (roomId: string | undefined) => {
   const [backgroundUrl, setBackgroundUrl] = useState<string | null>(null);
-  const [pdfSize, setPdfSize] = useState({ width: 1200, height: 1000 });
+  const [pdfSize, setPdfSize] = useState({ width: 1000, height: 1000 });
   const [fileName, setFileName] = useState("선택된 파일 없음");
   const handleFileUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
