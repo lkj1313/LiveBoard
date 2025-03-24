@@ -38,20 +38,24 @@ const Whiteboard = () => {
     setPdfSize, // PDF 사이즈 설정 함수 (PDFRenderer에서 호출)
     pdfSize, // 현재 렌더링할 PDF의 사이즈
     handleFileUpload, // input[type=file]에서 호출되는 업로드 함수
+    clearBackground, // background 이미지 또는 pdf의 url 초기화
+    fileName,
   } = useBackground(roomId);
 
   return (
-    <div className="flex flex-col items-start h-full w-full">
+    <div className="flex flex-col items-center h-full w-full">
       <Toolbar
         isErasing={isErasing}
         onToggleDraw={() => setIsErasing(false)}
         onToggleErase={() => setIsErasing(true)}
         onClear={clearCanvas}
         onUpload={handleFileUpload}
+        onClearBackground={clearBackground}
+        fileName={fileName}
       />
 
-      {/* ✅ 캔버스 + 백그라운드 (하단) */}
-      <div className="relative w-[800px] h-[800px]">
+      {/*  캔버스 + 백그라운드 (하단) */}
+      <div className="relative w-[1000px] h-[800px]">
         <div className="relative min-h-full">
           {backgroundUrl?.includes(".pdf") ? (
             <PDFRenderer url={backgroundUrl} onSizeChange={setPdfSize} />

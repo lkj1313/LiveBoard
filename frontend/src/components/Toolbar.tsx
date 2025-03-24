@@ -1,12 +1,15 @@
 // components/Toolbar.tsx
 import React from "react";
+import FileUploader from "./FileUploader";
 
 interface ToolbarProps {
+  fileName: string;
   isErasing: boolean;
   onToggleDraw: () => void;
   onToggleErase: () => void;
   onClear: () => void;
   onUpload: (e: React.ChangeEvent<HTMLInputElement>) => void;
+  onClearBackground: () => void;
 }
 
 const Toolbar: React.FC<ToolbarProps> = ({
@@ -15,6 +18,8 @@ const Toolbar: React.FC<ToolbarProps> = ({
   onToggleErase,
   onClear,
   onUpload,
+  onClearBackground,
+  fileName,
 }) => {
   return (
     <div className="flex gap-2 mb-4 py-2 bg-white bg-opacity-80 rounded shadow z-10">
@@ -44,11 +49,10 @@ const Toolbar: React.FC<ToolbarProps> = ({
       >
         ❌ 전체 지우기
       </button>
-      <input
-        type="file"
-        accept="application/pdf,image/*"
-        onChange={onUpload}
-        className="px-3 py-2 rounded border border-gray-300 bg-lime-400 text-black"
+      <FileUploader
+        onUpload={onUpload}
+        fileName={fileName}
+        onClear={onClearBackground}
       />
     </div>
   );

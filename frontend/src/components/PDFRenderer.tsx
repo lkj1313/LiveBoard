@@ -56,7 +56,7 @@ const PDFViewer = ({ url, onSizeChange }: PDFViewerProps) => {
             <Page
               key={`page_${i + 1}`}
               pageNumber={i + 1}
-              width={800}
+              width={1000}
               className="mb-4"
               onRenderSuccess={({ width, height }) => {
                 setPageSizes((prev) => ({

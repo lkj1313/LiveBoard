@@ -6,8 +6,8 @@ const RoomPage = () => {
   const location = useLocation();
   const user: User | null = useAuthStore((state) => state.user);
   return (
-    <div className="h-screen w-screen flex flex-col">
-      <h1>
+    <div className="h-screen w-screen flex flex-col justify-center">
+      <h1 className="text-center">
         {user?.nickname}님이 {location.state.roomName} - 방에 입장하셨습니다!
       </h1>
 
