@@ -6,6 +6,7 @@ const HomePage = () => {
 
   useEffect(() => {
     fetch(`${SERVER_URL}/room/rooms`, {
+      method: "GET",
       credentials: "include", // ✅ 쿠키 포함
     })
       .then((res) => res.json())
