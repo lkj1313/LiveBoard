@@ -5,9 +5,12 @@ const HomePage = () => {
   const [rooms, setRooms] = useState<any[]>([]);
 
   useEffect(() => {
-    fetch(`${SERVER_URL}/room/rooms`)
+    fetch(`${SERVER_URL}/room/rooms`, {
+      credentials: "include", // ✅ 쿠키 포함
+    })
       .then((res) => res.json())
-      .then((data) => setRooms(data.rooms));
+      .then((data) => setRooms(data.rooms))
+      .catch((err) => console.error("방 목록 불러오기 실패", err));
   }, []);
   console.log(rooms);
   return (

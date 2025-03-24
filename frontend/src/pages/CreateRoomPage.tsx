@@ -8,6 +8,9 @@ const CreateRoomPage = () => {
   const [image, setImage] = useState<File | null>(null); // 이미지 파일 상태 관리
   const [error, setError] = useState<string | null>(null);
   const [imagePreview, setImagePreview] = useState<string | null>(null); // 이미지 미리보기 상태
+  const DEFAULT_IMAGE_URL =
+    "https://firebasestorage.googleapis.com/v0/b/liveboard-24cba.firebasestorage.app/o/rooms%2Fwhiteboard.webp-1742811168081?alt=media&token=4f386f73-2bf8-421a-9df2-1fb9ebf92b80";
+
   const navigate = useNavigate();
 
   // 파일 선택 시 미리보기 처리
@@ -44,9 +47,9 @@ const CreateRoomPage = () => {
     }
 
     try {
-      let imageUrl: string | null = null;
+      let imageUrl = DEFAULT_IMAGE_URL;
 
-      // ✅ Firebase Storage에 업로드
+      // ✅ 이미지가 선택된 경우에만 Firebase에 업로드
       if (image) {
         imageUrl = await uploadImageToFirebase(image);
       }
@@ -57,7 +60,7 @@ const CreateRoomPage = () => {
         credentials: "include",
         body: JSON.stringify({
           name: roomName,
-          image: imageUrl, // 그냥 URL만 보냄
+          image: imageUrl,
         }),
       });
 
@@ -70,6 +73,7 @@ const CreateRoomPage = () => {
       setError(err instanceof Error ? err.message : "방 생성 실패");
     }
   };
+
   return (
     <div className="h-screen bg-gray-800 flex justify-center items-center">
       <div className="bg-white p-8 rounded-lg shadow-lg w-full max-w-md">
