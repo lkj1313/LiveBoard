@@ -10,7 +10,7 @@ const HomePage = () => {
       credentials: "include", // ✅ 쿠키 포함
     })
       .then((res) => res.json())
-      .then((data) => setRooms(data.rooms))
+      .then((data) => setRooms(data.rooms || [])) // rooms가 undefined일 경우 빈 배열로 처리
       .catch((err) => console.error("방 목록 불러오기 실패", err));
   }, []);
   console.log(rooms);
