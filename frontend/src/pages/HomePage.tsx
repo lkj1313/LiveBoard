@@ -24,7 +24,7 @@ const HomePage = () => {
         {/* 방 목록 */}
         <div className="space-y-4">
           <h3 className="text-xl text-gray-600 mb-2">방 목록</h3>
-          {rooms.length === 0 ? (
+          {Array.isArray(rooms) && rooms.length === 0 ? (
             <p className="text-center text-gray-500">현재 방이 없습니다.</p>
           ) : (
             rooms.map((room) => (
