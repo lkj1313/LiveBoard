@@ -19,6 +19,7 @@ const useBackground = (roomId: string | undefined) => {
     await fetch(`${SERVER_URL}/room/${roomId}/background`, {
       method: "PUT",
       headers: { "Content-Type": "application/json" },
+      credentials: "include",
       body: JSON.stringify({ backgroundUrl: url }),
     });
   };
@@ -32,6 +33,7 @@ const useBackground = (roomId: string | undefined) => {
     await fetch(`${SERVER_URL}/room/${roomId}/background`, {
       method: "PUT",
       headers: { "Content-Type": "application/json" },
+      credentials: "include",
       body: JSON.stringify({ backgroundUrl: null }),
     });
   };
@@ -39,7 +41,14 @@ const useBackground = (roomId: string | undefined) => {
     if (!roomId) return;
 
     const fetchRoom = async () => {
-      const res = await fetch(`${SERVER_URL}/room/${roomId}`);
+      const res = await fetch(`${SERVER_URL}/room/${roomId}`, {
+        method: "GET",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        credentials: "include", // 쿠키 포함
+      });
+
       const data = await res.json();
 
       if (data.backgroundUrl) {
