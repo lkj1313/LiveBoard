@@ -19,6 +19,7 @@ const __dirname = path.dirname(__filename);
 const io = new Server(server, {
   cors: {
     origin: ["http://localhost:5173", "https://lkj-live-board.vercel.app"],
+    credentials: true,
     methods: ["GET", "POST"],
   },
 });

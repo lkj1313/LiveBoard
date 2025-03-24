@@ -14,6 +14,7 @@ const HomePage = () => {
       .catch((err) => console.error("방 목록 불러오기 실패", err));
   }, []);
   console.log(rooms);
+  console.log(document.cookie);
   return (
     <div className="h-screen bg-gray-800 flex justify-center items-center">
       <div className="bg-gray-200 p-8 max-h-[480px] rounded-lg shadow-lg w-full max-w-md overflow-y-auto ">

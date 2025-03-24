@@ -65,7 +65,7 @@ router.post("/login", async (req, res) => {
     // 쿠키에 저장
     res.cookie("token", token, {
       httpOnly: true,
-      secure: false, // 테스트니까 false
+      secure: ture,
       sameSite: "None", // 모든 크로스 요청에 허용
     });
     res.json({
