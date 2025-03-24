@@ -1,5 +1,7 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
+import { getDownloadURL, ref, uploadBytes } from "firebase/storage";
+import { storage } from "../utils/firebase"; // 이미 설정한 firebase storage 인스턴스
 const SERVER_URL = import.meta.env.VITE_SERVER_URL;
 const CreateRoomPage = () => {
   const [roomName, setRoomName] = useState("");
@@ -26,7 +28,12 @@ const CreateRoomPage = () => {
       reader.readAsDataURL(file); // 파일을 비동기적으로 읽기 시작
     }
   };
-
+  const uploadImageToFirebase = async (file: File): Promise<string> => {
+    const fileRef = ref(storage, `rooms/${file.name}-${Date.now()}`);
+    await uploadBytes(fileRef, file);
+    const url = await getDownloadURL(fileRef);
+    return url;
+  };
   const handleCreateRoom = async (e: React.FormEvent) => {
     e.preventDefault();
     setError(null);
@@ -36,28 +43,33 @@ const CreateRoomPage = () => {
       return;
     }
 
-    const formData = new FormData();
-    formData.append("name", roomName);
-    if (image) formData.append("image", image);
-
     try {
+      let imageUrl: string | null = null;
+
+      // ✅ Firebase Storage에 업로드
+      if (image) {
+        imageUrl = await uploadImageToFirebase(image);
+      }
+
       const response = await fetch(`${SERVER_URL}/room/create`, {
         method: "POST",
-        body: formData, // FormData로 보내서 이미지 파일을 전송
+        headers: { "Content-Type": "application/json" },
         credentials: "include",
+        body: JSON.stringify({
+          name: roomName,
+          image: imageUrl, // 그냥 URL만 보냄
+        }),
       });
 
       const data = await response.json();
       if (!response.ok) throw new Error(data.error);
 
-      // 방 생성 성공 후 홈으로 리다이렉트
       alert("방이 생성되었습니다!");
-      navigate("/home"); // 홈 페이지로 리다이렉트
+      navigate("/home");
     } catch (err) {
       setError(err instanceof Error ? err.message : "방 생성 실패");
     }
   };
-
   return (
     <div className="h-screen bg-gray-800 flex justify-center items-center">
       <div className="bg-white p-8 rounded-lg shadow-lg w-full max-w-md">

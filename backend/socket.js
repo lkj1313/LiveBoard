@@ -1,4 +1,3 @@
-import { Server } from "socket.io";
 import Drawing from "./models/Drawing.js";
 
 export const socketHandler = (io) => {

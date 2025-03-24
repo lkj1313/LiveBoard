@@ -28,9 +28,12 @@ const HomePage = () => {
                 key={room._id}
                 to={`/room/${room._id}`}
                 state={{ roomName: room.name }}
-                className="block p-4 bg-blue-500 text-white rounded-lg hover:bg-blue-600 transition"
+                className="flex p-4 bg-blue-500 text-white rounded-lg hover:bg-blue-600 transition items-center gap-2"
               >
-                {room.image}
+                <img
+                  src={room.image}
+                  className="w-10 h-10 border rounded-full"
+                ></img>
                 {room.name}
               </Link>
             ))
