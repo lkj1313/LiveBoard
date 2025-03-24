@@ -20,7 +20,7 @@ const io = new Server(server, {
   cors: {
     origin: [
       "http://localhost:5173",
-      "https://live-board-crfd2vinh-lkj1313s-projects.vercel.app/",
+      "https://live-board-crfd2vinh-lkj1313s-projects.vercel.app",
     ],
     methods: ["GET", "POST"],
   },
@@ -32,7 +32,7 @@ app.use(
     credentials: true,
     origin: [
       "http://localhost:5173",
-      "https://live-board-crfd2vinh-lkj1313s-projects.vercel.app/",
+      "https://live-board-crfd2vinh-lkj1313s-projects.vercel.app",
     ],
   })
 );
