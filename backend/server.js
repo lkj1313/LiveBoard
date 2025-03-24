@@ -18,13 +18,18 @@ const __dirname = path.dirname(__filename);
 
 const io = new Server(server, {
   cors: {
-    origin: "http://localhost:5173",
+    origin: ["http://localhost:5173", "https://lkj-live-board.vercel.app"],
     methods: ["GET", "POST"],
   },
 });
 // 미들웨어 설정
 app.use(express.json());
-app.use(cors({ credentials: true, origin: "http://localhost:5173" }));
+app.use(
+  cors({
+    credentials: true,
+    origin: ["http://localhost:5173", "https://lkj-live-board.vercel.app"],
+  })
+);
 app.use(cookieParser());
 app.use("/uploads", express.static(path.join(__dirname, "uploads")));
 // MongoDB 연결
