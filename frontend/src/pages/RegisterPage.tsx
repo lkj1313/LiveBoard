@@ -52,20 +52,6 @@ const RegisterPage = () => {
 
         <form className="space-y-4" onSubmit={handleRegister}>
           <div>
-            <label htmlFor="nickname" className="block text-gray-700">
-              닉네임
-            </label>
-            <input
-              id="nickname"
-              type="text"
-              className="w-full p-2 border border-gray-300 rounded-lg focus:ring focus:ring-blue-200"
-              placeholder="닉네임 입력"
-              value={nickname}
-              onChange={(e) => setNickname(e.target.value)}
-              required
-            />
-          </div>
-          <div>
             <label htmlFor="email" className="block text-gray-700">
               이메일
             </label>
@@ -76,6 +62,20 @@ const RegisterPage = () => {
               placeholder="이메일 입력"
               value={email}
               onChange={(e) => setEmail(e.target.value)}
+              required
+            />
+          </div>
+          <div>
+            <label htmlFor="nickname" className="block text-gray-700">
+              닉네임
+            </label>
+            <input
+              id="nickname"
+              type="text"
+              className="w-full p-2 border border-gray-300 rounded-lg focus:ring focus:ring-blue-200"
+              placeholder="닉네임 입력"
+              value={nickname}
+              onChange={(e) => setNickname(e.target.value)}
               required
             />
           </div>

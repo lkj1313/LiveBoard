@@ -94,15 +94,19 @@ export const canvasSocketHandler = (io) => {
         const userId = strokes[0]?.userId;
         if (!userId) return;
 
-        const filtered = drawing.strokes.filter((s) => s.userId !== userId);
-        const updatedStrokes = [...filtered, ...strokes];
+        // 기존 strokes 중에서 해당 유저가 그린 것만 교체
+        const updatedStrokes = [
+          ...drawing.strokes.filter((s) => s.userId !== userId), // 다른 사람 것 유지
+          ...strokes, // 내 것만 교체
+        ];
 
         await Drawing.updateOne(
           { roomId },
           { $set: { strokes: updatedStrokes } }
         );
 
-        socket.to(roomId).emit("loadDrawings", updatedStrokes);
+        // 모든 유저에게 동기화
+        io.to(roomId).emit("loadDrawings", updatedStrokes);
       } catch (error) {
         console.error("replaceStrokes error:", error);
       }
