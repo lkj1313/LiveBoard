@@ -19,7 +19,8 @@ interface UseCanvasProps {
 
 const useCanvas = ({ user, roomId }: UseCanvasProps) => {
   const canvasRef = useRef<HTMLCanvasElement | null>(null);
-  const [strokes, setStrokes] = useState<Stroke[]>([]);
+  const [myStrokes, setMyStrokes] = useState<Stroke[]>([]);
+  const [otherStrokes, setOtherStrokes] = useState<Stroke[]>([]);
   const [undoStack, setUndoStack] = useState<Stroke[][]>([]);
   const [hoveredNick, setHoveredNick] = useState<string | null>(null);
   const [hoverPos, setHoverPos] = useState<{ x: number; y: number } | null>(
@@ -27,46 +28,34 @@ const useCanvas = ({ user, roomId }: UseCanvasProps) => {
   );
   const currentStrokeRef = useRef<Stroke | null>(null);
   const [isDrawing, setIsDrawing] = useState(false);
-  console.log(strokes);
-  // 되돌리기 스택 저장
+
   const pushUndoStack = () => {
     if (!user) return;
-
-    const myStrokes = strokes.filter((s) => s.userId === user.userId);
     setUndoStack((prev) => [...prev, JSON.parse(JSON.stringify(myStrokes))]);
   };
 
   const undo = () => {
     if (!user) return;
-
     setUndoStack((prev) => {
       if (prev.length === 0) return prev;
-
       const copy = [...prev];
-      const myPreviousStrokes = copy.pop(); // 내가 저장해둔 나의 이전 상태
-
+      const myPreviousStrokes = copy.pop();
       if (myPreviousStrokes) {
-        setStrokes((current) => {
-          const others = current.filter((s) => s.userId !== user.userId);
-          const updated = [...others, ...myPreviousStrokes];
-
-          // 서버에도 동기화
-          socket.emit("replaceStrokes", {
-            roomId,
-            strokes: updated.filter((s) => s.userId === user.userId), // 내 것만 보내기
-          });
-
-          return updated;
+        setMyStrokes(myPreviousStrokes);
+        socket.emit("replaceStrokes", {
+          roomId,
+          strokes: myPreviousStrokes,
         });
       }
-
       return copy;
     });
   };
+
   const handleMouseDown = (
     e: React.MouseEvent<HTMLCanvasElement>,
     isErasing: boolean
   ) => {
+    if (!user) return;
     const { offsetX, offsetY } = e.nativeEvent;
 
     if (isErasing) {
@@ -74,9 +63,7 @@ const useCanvas = ({ user, roomId }: UseCanvasProps) => {
       return;
     }
 
-    if (!user) return;
-
-    pushUndoStack(); // ✅ 현재 상태 저장
+    pushUndoStack();
 
     const newStroke: Stroke = {
       userId: user.userId,
@@ -85,19 +72,18 @@ const useCanvas = ({ user, roomId }: UseCanvasProps) => {
     };
 
     currentStrokeRef.current = newStroke;
-    setStrokes((prev) => [...prev, newStroke]);
+    setMyStrokes((prev) => [...prev, newStroke]);
     setIsDrawing(true);
   };
 
   const draw = (e: React.MouseEvent<HTMLCanvasElement>) => {
     if (!isDrawing || !currentStrokeRef.current) return;
-
     const { offsetX, offsetY } = e.nativeEvent;
     currentStrokeRef.current.points.push({ x: offsetX, y: offsetY });
-
-    setStrokes((prev) => {
+    setMyStrokes((prev) => {
       const updated = [...prev];
-      updated[updated.length - 1].points.push({ x: offsetX, y: offsetY });
+      const last = updated[updated.length - 1];
+      if (last) last.points.push({ x: offsetX, y: offsetY });
       return updated;
     });
   };
@@ -115,44 +101,32 @@ const useCanvas = ({ user, roomId }: UseCanvasProps) => {
 
   const erase = (x: number, y: number) => {
     if (!user) return;
-
-    pushUndoStack(); // ✅ 현재 상태 저장
-
-    const updated = strokes.filter((stroke) => {
-      if (stroke.userId !== user.userId) return true;
-      const isNear = stroke.points.some(
-        (p) => Math.abs(p.x - x) < 10 && Math.abs(p.y - y) < 10
-      );
-      return !isNear;
-    });
-
-    setStrokes(updated);
-
+    pushUndoStack();
+    setMyStrokes((prev) =>
+      prev.filter((stroke) => {
+        return !stroke.points.some(
+          (p) => Math.abs(p.x - x) < 10 && Math.abs(p.y - y) < 10
+        );
+      })
+    );
     socket.emit("erase", { roomId, userId: user.userId, x, y });
   };
 
   const clearCanvas = () => {
     if (!user) return;
-
-    pushUndoStack(); // ✅ 현재 상태 저장
-
-    setStrokes((prev) =>
-      prev.filter((stroke) => stroke.userId !== user.userId)
-    );
-
+    pushUndoStack();
+    setMyStrokes([]);
     socket.emit("clear", { roomId, userId: user.userId });
   };
 
   const handleHover = (e: React.MouseEvent<HTMLCanvasElement>) => {
     if (isDrawing) return;
-
     const { offsetX, offsetY } = e.nativeEvent;
-    const found = strokes.find((stroke) =>
+    const found = [...myStrokes, ...otherStrokes].find((stroke) =>
       stroke.points.some(
         (p) => Math.abs(p.x - offsetX) < 6 && Math.abs(p.y - offsetY) < 6
       )
     );
-
     if (found) {
       setHoveredNick(found.nickname);
       setHoverPos({ x: offsetX, y: offsetY });
@@ -168,25 +142,27 @@ const useCanvas = ({ user, roomId }: UseCanvasProps) => {
     if (!canvas || !ctx) return;
 
     ctx.clearRect(0, 0, canvas.width, canvas.height);
-
-    strokes.forEach((stroke) => {
+    [...otherStrokes, ...myStrokes].forEach((stroke) => {
       ctx.beginPath();
       stroke.points.forEach((point, i) => {
         if (i === 0) ctx.moveTo(point.x, point.y);
         else ctx.lineTo(point.x, point.y);
       });
+      ctx.strokeStyle = stroke.userId === user?.userId ? "#000" : "#888";
       ctx.stroke();
     });
   };
 
   useEffect(() => {
     redrawCanvas();
-  }, [strokes]);
+  }, [myStrokes, otherStrokes]);
 
   return {
     canvasRef,
-    strokes,
-    setStrokes,
+    myStrokes,
+    otherStrokes,
+    setMyStrokes,
+    setOtherStrokes,
     hoveredNick,
     hoverPos,
     handleMouseDown,

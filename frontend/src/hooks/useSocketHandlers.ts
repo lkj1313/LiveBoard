@@ -11,13 +11,18 @@ interface Stroke {
 
 interface UseSocketHandlersProps {
   roomId: string;
-  setStrokes: React.Dispatch<React.SetStateAction<Stroke[]>>;
+  setMyStrokes: React.Dispatch<React.SetStateAction<Stroke[]>>;
+  setOtherStrokes: React.Dispatch<React.SetStateAction<Stroke[]>>;
 }
 
-const useSocketHandlers = ({ roomId, setStrokes }: UseSocketHandlersProps) => {
+const useSocketHandlers = ({
+  roomId,
+  setMyStrokes,
+  setOtherStrokes,
+}: UseSocketHandlersProps) => {
   const [userList, setUserList] = useState<string[]>();
-  console.log(userList);
   const user = useAuthStore((state) => state.user);
+
   useEffect(() => {
     if (!user) return;
     connectSocket();
@@ -26,33 +31,46 @@ const useSocketHandlers = ({ roomId, setStrokes }: UseSocketHandlersProps) => {
       console.log("✅ 소켓 연결됨:", socket.id);
       socket.emit("join", { roomId, nickname: user.nickname });
     });
+
     socket.on("userList", (nicknames) => {
-      setUserList(nicknames); // or setState로 저장
+      setUserList(nicknames);
     });
+
     socket.on("loadDrawings", (strokes: Stroke[]) => {
-      console.log("🖼️ 서버로부터 그림 받아옴:", strokes);
-      setStrokes(strokes);
+      const my = strokes.filter((s) => s.userId === user.userId);
+      const others = strokes.filter((s) => s.userId !== user.userId);
+      setMyStrokes(my);
+      setOtherStrokes(others);
     });
 
     socket.on("draw", (stroke: Stroke) => {
-      setStrokes((prev) => [...prev, stroke]);
+      if (stroke.userId !== user.userId) {
+        setOtherStrokes((prev) => [...prev, stroke]);
+      }
     });
 
     socket.on("erase", ({ userId, x, y }) => {
-      setStrokes((prev) =>
-        prev.filter((stroke) => {
-          if (stroke.userId !== userId) return true;
-          const isNearClick = stroke.points.some(
-            (point) => Math.abs(point.x - x) < 5 && Math.abs(point.y - y) < 5
-          );
-          return !isNearClick;
-        })
-      );
+      if (userId !== user.userId) {
+        setOtherStrokes((prev) =>
+          prev.filter((stroke) => {
+            if (stroke.userId !== userId) return true;
+            const isNearClick = stroke.points.some(
+              (point) => Math.abs(point.x - x) < 5 && Math.abs(point.y - y) < 5
+            );
+            return !isNearClick;
+          })
+        );
+      }
     });
 
     socket.on("clear", ({ userId }) => {
-      setStrokes((prev) => prev.filter((stroke) => stroke.userId !== userId));
+      if (userId !== user.userId) {
+        setOtherStrokes((prev) =>
+          prev.filter((stroke) => stroke.userId !== userId)
+        );
+      }
     });
+
     socket.on("userJoin", (nickname: string) => {
       toast.success(`${nickname}님이 입장하셨습니다!`);
     });
@@ -72,7 +90,8 @@ const useSocketHandlers = ({ roomId, setStrokes }: UseSocketHandlersProps) => {
       socket.off("userLeave");
       socket.disconnect();
     };
-  }, [roomId, setStrokes]);
+  }, [roomId, setMyStrokes, setOtherStrokes, user]);
+
   return { userList };
 };
 

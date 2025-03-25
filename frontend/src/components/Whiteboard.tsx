@@ -18,58 +18,62 @@ const Whiteboard = ({ roomName }: { roomName: string }) => {
   const { id } = useParams();
   const roomId = id!;
 
-  // ✏️ 그리기 기능 (캔버스 관련 로직 + 상태)
+  // ✏️ 그린기 기능 (카바스 관련 로직 + 상태)
   const {
-    canvasRef, // 캔버스 DOM에 접근하기 위한 ref
-    setStrokes, // 외부에서 stroke 상태를 갱신할 때 사용
-    hoveredNick, // 마우스 hover 시 보여줄 닉네임
-    hoverPos, // hover 닉네임 위치
-    handleMouseDown, // 마우스 클릭 (그리기 시작 or 지우기)
-    draw, // 마우스 이동 시 선을 그림
-    stopDrawing, // 마우스 뗄 때 그리기 종료
-    handleHover, // 닉네임 hover 감지
-    clearCanvas, // 전체 지우기 (내 stroke만)
+    canvasRef,
+    myStrokes,
+    otherStrokes,
+    setMyStrokes,
+    setOtherStrokes,
+    hoveredNick,
+    hoverPos,
+    handleMouseDown,
+    draw,
+    stopDrawing,
+    handleHover,
+    clearCanvas,
     undo,
   } = useCanvas({ user, roomId });
 
-  // 🖼️ PDF 또는 이미지 배경 처리 (업로드, 사이즈, URL 관리)
+  // 포메이지 배경 (업로드, 사이즈, URL)
   const {
-    backgroundUrl, // 백그라운드 이미지 또는 PDF의 URL
-    setPdfSize, // PDF 사이즈 설정 함수 (PDFRenderer에서 호출)
-    pdfSize, // 현재 렌더링할 PDF의 사이즈
-    handleFileUpload, // input[type=file]에서 호출되는 업로드 함수
-    clearBackground, // background 이미지 또는 pdf의 url 초기화
+    backgroundUrl,
+    setPdfSize,
+    pdfSize,
+    handleFileUpload,
+    clearBackground,
     fileName,
   } = useBackground(roomId);
+
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
-      if (e.ctrlKey && e.key === "z") {
-        undo(); // useCanvas 훅에서 받아온 함수
-      }
+      if (e.ctrlKey && e.key === "z") undo();
     };
-
     window.addEventListener("keydown", handleKeyDown);
     return () => window.removeEventListener("keydown", handleKeyDown);
   }, [undo]);
-  // 🌐 소켓 연결 및 실시간 동기화 처리 (서버에서 받아온 stroke 동기화)
-  const { userList } = useSocketHandlers({ roomId, setStrokes });
+
+  // 소켓 연결 & 실시간 동기화
+  const { userList } = useSocketHandlers({
+    roomId,
+    setMyStrokes,
+    setOtherStrokes,
+  });
 
   const userString =
     userList && userList.length > 0
-      ? `${userList.join(", ")} 님(들)이 ${roomName}방에 입장하셨습니다!`
+      ? `${userList.join(", ")} 님(들)이 ${roomName}방에 입장하셔요!`
       : "";
 
   return (
     <div>
-      <div>
-        {" "}
-        {/* 🧍 유저 입장 문구 */}
-        {userString && (
-          <div className="text-sm text-gray-600 text-center py-2">
-            {userString}
-          </div>
-        )}
-      </div>
+      {/* 입장문구 */}
+      {userString && (
+        <div className="text-sm text-gray-600 text-center py-2">
+          {userString}
+        </div>
+      )}
+
       <div className="flex flex-col items-center h-full w-full">
         <Toolbar
           isErasing={isErasing}
@@ -81,8 +85,8 @@ const Whiteboard = ({ roomName }: { roomName: string }) => {
           fileName={fileName}
         />
 
-        {/*  캔버스 + 백그라운드 (하단) */}
-        <div className="relative w-[1000px] ">
+        {/* 카바스 + 배경 */}
+        <div className="relative w-[1000px]">
           {backgroundUrl?.includes(".pdf") ? (
             <PDFRenderer url={backgroundUrl} onSizeChange={setPdfSize} />
           ) : (
@@ -106,7 +110,7 @@ const Whiteboard = ({ roomName }: { roomName: string }) => {
             stopDrawing={stopDrawing}
           />
 
-          {/* 호버 닉네임 */}
+          {/* Hover 닉네임 */}
           {hoveredNick && hoverPos && (
             <div
               className="absolute z-20 bg-black bg-opacity-70 text-white text-xs px-2 py-1 rounded pointer-events-none whitespace-nowrap"
