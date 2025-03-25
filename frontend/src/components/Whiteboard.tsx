@@ -9,6 +9,7 @@ import useCanvas from "../hooks/useCanvas";
 import useSocketHandlers from "../hooks/useSocketHandlers";
 import useBackground from "../hooks/useBackground";
 import DrawingCanvas from "./DrawingCanvas";
+import ChatBox from "./ChatBox";
 
 const Whiteboard = () => {
   const [isErasing, setIsErasing] = useState(false);

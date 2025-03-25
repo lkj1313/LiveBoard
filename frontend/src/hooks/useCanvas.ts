@@ -27,12 +27,42 @@ const useCanvas = ({ user, roomId }: UseCanvasProps) => {
   );
   const currentStrokeRef = useRef<Stroke | null>(null);
   const [isDrawing, setIsDrawing] = useState(false);
-
+  console.log(strokes);
   // 되돌리기 스택 저장
   const pushUndoStack = () => {
-    setUndoStack((prev) => [...prev, JSON.parse(JSON.stringify(strokes))]);
+    if (!user) return;
+
+    const myStrokes = strokes.filter((s) => s.userId === user.userId);
+    setUndoStack((prev) => [...prev, JSON.parse(JSON.stringify(myStrokes))]);
   };
 
+  const undo = () => {
+    if (!user) return;
+
+    setUndoStack((prev) => {
+      if (prev.length === 0) return prev;
+
+      const copy = [...prev];
+      const myPreviousStrokes = copy.pop(); // 내가 저장해둔 나의 이전 상태
+
+      if (myPreviousStrokes) {
+        setStrokes((current) => {
+          const others = current.filter((s) => s.userId !== user.userId);
+          const updated = [...others, ...myPreviousStrokes];
+
+          // 서버에도 동기화
+          socket.emit("replaceStrokes", {
+            roomId,
+            strokes: updated.filter((s) => s.userId === user.userId), // 내 것만 보내기
+          });
+
+          return updated;
+        });
+      }
+
+      return copy;
+    });
+  };
   const handleMouseDown = (
     e: React.MouseEvent<HTMLCanvasElement>,
     isErasing: boolean
@@ -146,21 +176,6 @@ const useCanvas = ({ user, roomId }: UseCanvasProps) => {
         else ctx.lineTo(point.x, point.y);
       });
       ctx.stroke();
-    });
-  };
-
-  const undo = () => {
-    setUndoStack((prev) => {
-      if (prev.length === 0) return prev;
-
-      const copy = [...prev];
-      const previous = copy.pop();
-      if (previous) {
-        setStrokes(previous);
-        socket.emit("replaceStrokes", { roomId, strokes: previous });
-      }
-
-      return copy;
     });
   };
 

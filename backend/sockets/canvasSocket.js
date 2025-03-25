@@ -1,6 +1,6 @@
-import Drawing from "./models/Drawing.js";
+import Drawing from "../models/Drawing.js";
 
-export const socketHandler = (io) => {
+export const canvasSocketHandler = (io) => {
   io.on("connection", (socket) => {
     console.log("✅ 클라이언트 연결됨:", socket.id);
 
@@ -65,9 +65,28 @@ export const socketHandler = (io) => {
       }
     });
     socket.on("replaceStrokes", async ({ roomId, strokes }) => {
-      await Drawing.updateOne({ roomId }, { $set: { strokes } });
+      try {
+        // 기존 strokes 불러오기
+        const drawing = await Drawing.findOne({ roomId });
+        if (!drawing) return;
 
-      socket.to(roomId).emit("loadDrawings", strokes);
+        const userId = strokes[0]?.userId; // 전달된 strokes는 해당 유저의 것만 있어야 함
+        if (!userId) return;
+
+        // 해당 유저의 stroke만 교체, 나머지는 유지
+        const filtered = drawing.strokes.filter((s) => s.userId !== userId);
+        const updatedStrokes = [...filtered, ...strokes];
+
+        await Drawing.updateOne(
+          { roomId },
+          { $set: { strokes: updatedStrokes } }
+        );
+
+        // 방에 있는 모든 클라이언트에 반영
+        socket.to(roomId).emit("loadDrawings", updatedStrokes);
+      } catch (error) {
+        console.error("replaceStrokes error:", error);
+      }
     });
   });
 };

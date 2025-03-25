@@ -6,9 +6,10 @@ import cookieParser from "cookie-parser";
 import authRoutes from "./routes/auth.js";
 import roomRoutes from "./routes/room.js";
 import path from "path";
-import { socketHandler } from "./socket.js";
+import { canvasSocketHandler } from "./sockets/canvasSocket.js";
 import { createServer } from "http";
 import { Server } from "socket.io";
+import { chatSocketHandler } from "./sockets/chatSocket.js";
 
 const app = express();
 const server = createServer(app); // ✅ HTTP 서버 생성
@@ -43,7 +44,8 @@ mongoose
 app.use("/auth", authRoutes);
 app.use("/room", roomRoutes);
 // 소켓 서버 설정
-socketHandler(io);
+canvasSocketHandler(io);
+chatSocketHandler(io);
 // 서버 실행
 const PORT = process.env.PORT || 4000;
 server.listen(PORT, () =>
