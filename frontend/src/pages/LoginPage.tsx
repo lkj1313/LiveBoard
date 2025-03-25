@@ -3,8 +3,8 @@ import { useNavigate } from "react-router-dom";
 import useAuthStore from "../store/authStore";
 const SERVER_URL = import.meta.env.VITE_SERVER_URL;
 const LoginPage = () => {
-  const [email, setEmail] = useState("");
-  const [password, setPassword] = useState("");
+  const [email, setEmail] = useState("test@naver.com");
+  const [password, setPassword] = useState("123456");
   const [error, setError] = useState<string | null>(null);
   const setUser = useAuthStore((state) => state.setUser); // ✅ Zustand에서 `setUser` 가져오기
 
