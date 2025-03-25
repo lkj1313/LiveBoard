@@ -11,7 +11,7 @@ import useBackground from "../hooks/useBackground";
 import DrawingCanvas from "./DrawingCanvas";
 import ChatBox from "./ChatBox";
 
-const Whiteboard = () => {
+const Whiteboard = ({ roomName }: { roomName: string }) => {
   const [isErasing, setIsErasing] = useState(false);
 
   const user = useAuthStore((state) => state.user);
@@ -32,9 +32,6 @@ const Whiteboard = () => {
     undo,
   } = useCanvas({ user, roomId });
 
-  // 🌐 소켓 연결 및 실시간 동기화 처리 (서버에서 받아온 stroke 동기화)
-  useSocketHandlers({ roomId: roomId!, setStrokes });
-
   // 🖼️ PDF 또는 이미지 배경 처리 (업로드, 사이즈, URL 관리)
   const {
     backgroundUrl, // 백그라운드 이미지 또는 PDF의 URL
@@ -54,52 +51,71 @@ const Whiteboard = () => {
     window.addEventListener("keydown", handleKeyDown);
     return () => window.removeEventListener("keydown", handleKeyDown);
   }, [undo]);
+  // 🌐 소켓 연결 및 실시간 동기화 처리 (서버에서 받아온 stroke 동기화)
+  const { userList } = useSocketHandlers({ roomId, setStrokes });
+
+  const userString =
+    userList && userList.length > 0
+      ? `${userList.join(", ")} 님(들)이 ${roomName}방에 입장하셨습니다!`
+      : "";
+
   return (
-    <div className="flex flex-col items-center h-full w-full">
-      <Toolbar
-        isErasing={isErasing}
-        onToggleDraw={() => setIsErasing(false)}
-        onToggleErase={() => setIsErasing(true)}
-        onClear={clearCanvas}
-        onUpload={handleFileUpload}
-        onClearBackground={clearBackground}
-        fileName={fileName}
-      />
-
-      {/*  캔버스 + 백그라운드 (하단) */}
-      <div className="relative w-[1000px] ">
-        {backgroundUrl?.includes(".pdf") ? (
-          <PDFRenderer url={backgroundUrl} onSizeChange={setPdfSize} />
-        ) : (
-          backgroundUrl && (
-            <img
-              src={backgroundUrl}
-              alt="background"
-              className="absolute top-0 left-0 w-[800px] h-[600px] object-contain pointer-events-none z-0"
-            />
-          )
-        )}
-
-        <DrawingCanvas
-          canvasRef={canvasRef}
-          width={pdfSize.width}
-          height={pdfSize.height}
-          isErasing={isErasing}
-          handleMouseDown={(e) => handleMouseDown(e, isErasing)}
-          draw={draw}
-          handleHover={handleHover}
-          stopDrawing={stopDrawing}
-        />
-
-        {/* 호버 닉네임 */}
-        {hoveredNick && hoverPos && (
-          <div
-            className="absolute z-20 bg-black bg-opacity-70 text-white text-xs px-2 py-1 rounded pointer-events-none whitespace-nowrap"
-            style={{ top: hoverPos.y + 10, left: hoverPos.x + 10 }}
-          >
-            {hoveredNick}
+    <div>
+      <div>
+        {" "}
+        {/* 🧍 유저 입장 문구 */}
+        {userString && (
+          <div className="text-sm text-gray-600 text-center py-2">
+            {userString}
           </div>
         )}
+      </div>
+      <div className="flex flex-col items-center h-full w-full">
+        <Toolbar
+          isErasing={isErasing}
+          onToggleDraw={() => setIsErasing(false)}
+          onToggleErase={() => setIsErasing(true)}
+          onClear={clearCanvas}
+          onUpload={handleFileUpload}
+          onClearBackground={clearBackground}
+          fileName={fileName}
+        />
+
+        {/*  캔버스 + 백그라운드 (하단) */}
+        <div className="relative w-[1000px] ">
+          {backgroundUrl?.includes(".pdf") ? (
+            <PDFRenderer url={backgroundUrl} onSizeChange={setPdfSize} />
+          ) : (
+            backgroundUrl && (
+              <img
+                src={backgroundUrl}
+                alt="background"
+                className="absolute top-0 left-0 w-[800px] h-[600px] object-contain pointer-events-none z-0"
+              />
+            )
+          )}
+
+          <DrawingCanvas
+            canvasRef={canvasRef}
+            width={pdfSize.width}
+            height={pdfSize.height}
+            isErasing={isErasing}
+            handleMouseDown={(e) => handleMouseDown(e, isErasing)}
+            draw={draw}
+            handleHover={handleHover}
+            stopDrawing={stopDrawing}
+          />
+
+          {/* 호버 닉네임 */}
+          {hoveredNick && hoverPos && (
+            <div
+              className="absolute z-20 bg-black bg-opacity-70 text-white text-xs px-2 py-1 rounded pointer-events-none whitespace-nowrap"
+              style={{ top: hoverPos.y + 10, left: hoverPos.x + 10 }}
+            >
+              {hoveredNick}
+            </div>
+          )}
+        </div>
       </div>
     </div>
   );

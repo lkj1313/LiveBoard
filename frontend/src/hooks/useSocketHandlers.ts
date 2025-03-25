@@ -1,5 +1,7 @@
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import { socket, connectSocket } from "../utils/socket";
+import useAuthStore from "../store/authStore";
+import toast from "react-hot-toast";
 
 interface Stroke {
   userId: string;
@@ -13,14 +15,20 @@ interface UseSocketHandlersProps {
 }
 
 const useSocketHandlers = ({ roomId, setStrokes }: UseSocketHandlersProps) => {
+  const [userList, setUserList] = useState<string[]>();
+  console.log(userList);
+  const user = useAuthStore((state) => state.user);
   useEffect(() => {
+    if (!user) return;
     connectSocket();
 
     socket.on("connect", () => {
       console.log("✅ 소켓 연결됨:", socket.id);
-      socket.emit("join", roomId);
+      socket.emit("join", { roomId, nickname: user.nickname });
     });
-
+    socket.on("userList", (nicknames) => {
+      setUserList(nicknames); // or setState로 저장
+    });
     socket.on("loadDrawings", (strokes: Stroke[]) => {
       console.log("🖼️ 서버로부터 그림 받아옴:", strokes);
       setStrokes(strokes);
@@ -45,6 +53,13 @@ const useSocketHandlers = ({ roomId, setStrokes }: UseSocketHandlersProps) => {
     socket.on("clear", ({ userId }) => {
       setStrokes((prev) => prev.filter((stroke) => stroke.userId !== userId));
     });
+    socket.on("userJoin", (nickname: string) => {
+      toast.success(`${nickname}님이 입장하셨습니다!`);
+    });
+
+    socket.on("userLeave", (nickname: string) => {
+      toast(`${nickname}님이 퇴장하셨습니다.`, { icon: "👋" });
+    });
 
     return () => {
       socket.off("connect");
@@ -53,9 +68,12 @@ const useSocketHandlers = ({ roomId, setStrokes }: UseSocketHandlersProps) => {
       socket.off("erase");
       socket.off("clear");
       socket.off("loadDrawings");
+      socket.off("userJoin");
+      socket.off("userLeave");
       socket.disconnect();
     };
   }, [roomId, setStrokes]);
+  return { userList };
 };
 
 export default useSocketHandlers;
