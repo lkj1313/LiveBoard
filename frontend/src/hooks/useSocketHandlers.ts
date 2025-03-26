@@ -2,12 +2,7 @@ import { useEffect, useState } from "react";
 import { socket, connectSocket } from "../utils/socket";
 import useAuthStore from "../store/authStore";
 import toast from "react-hot-toast";
-
-interface Stroke {
-  userId: string;
-  nickname: string;
-  points: { x: number; y: number }[];
-}
+import Stroke from "../type/Stroke";
 
 interface UseSocketHandlersProps {
   roomId: string;

@@ -76,6 +76,7 @@ router.post("/login", async (req, res) => {
     res.status(500).json({ error: "서버 오류" });
   }
 });
+//로그아웃 API
 router.post("/logout", (req, res) => {
   res.clearCookie("token", {
     httpOnly: true,

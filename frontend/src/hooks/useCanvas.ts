@@ -1,16 +1,6 @@
 import { useEffect, useRef, useState } from "react";
 import { socket } from "../utils/socket";
-
-interface Point {
-  x: number;
-  y: number;
-}
-
-export interface Stroke {
-  userId: string;
-  nickname: string;
-  points: Point[];
-}
+import Stroke from "../type/Stroke";
 
 interface UseCanvasProps {
   user: { userId: string; nickname: string } | null;

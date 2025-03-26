@@ -2,7 +2,6 @@ import { useEffect, useState } from "react";
 import { Document, Page, pdfjs } from "react-pdf";
 import "core-js/full/promise/with-resolvers.js";
 
-// pdf.worker 직접 지정 (Vite에서 확실하게 작동함)
 pdfjs.GlobalWorkerOptions.workerSrc = new URL(
   "pdfjs-dist/legacy/build/pdf.worker.min.mjs",
   import.meta.url
@@ -15,10 +14,8 @@ interface PDFViewerProps {
 
 const PDFViewer = ({ url, onSizeChange }: PDFViewerProps) => {
   const [numPages, setNumPages] = useState<number>();
+  const [currentPage, setCurrentPage] = useState(1);
   const [pdfBlob, setPdfBlob] = useState<Blob | null>(null);
-  const [pageSizes, setPageSizes] = useState<
-    Record<number, { width: number; height: number }>
-  >({});
 
   useEffect(() => {
     const fetchPDF = async () => {
@@ -29,45 +26,52 @@ const PDFViewer = ({ url, onSizeChange }: PDFViewerProps) => {
     fetchPDF();
   }, [url]);
 
-  // 전체 크기 계산 후 상위로 전달
-  useEffect(() => {
-    if (!numPages) return;
-    if (Object.keys(pageSizes).length === numPages) {
-      const maxWidth = Math.max(
-        ...Object.values(pageSizes).map((p) => p.width)
-      );
-      const totalHeight = Object.values(pageSizes).reduce(
-        (acc, p) => acc + p.height,
-        0
-      );
-      onSizeChange?.({ width: maxWidth, height: totalHeight });
-    }
-  }, [pageSizes, numPages, onSizeChange]);
+  const goPrev = () => {
+    if (currentPage > 1) setCurrentPage(currentPage - 1);
+  };
+
+  const goNext = () => {
+    if (numPages && currentPage < numPages) setCurrentPage(currentPage + 1);
+  };
 
   return (
-    <div className="w-full h-full flex flex-col items-center">
+    <div className="flex flex-col items-center gap-4">
       {pdfBlob && (
         <Document
           file={pdfBlob}
           onLoadSuccess={({ numPages }) => setNumPages(numPages)}
           onLoadError={(err) => console.error("PDF Load Error", err)}
         >
-          {Array.from({ length: numPages || 0 }, (_, i) => (
-            <Page
-              key={`page_${i + 1}`}
-              pageNumber={i + 1}
-              width={1000}
-              className="mb-4"
-              onRenderSuccess={({ width, height }) => {
-                setPageSizes((prev) => ({
-                  ...prev,
-                  [i + 1]: { width, height },
-                }));
-              }}
-            />
-          ))}
+          <Page
+            pageNumber={currentPage}
+            width={1000}
+            onRenderSuccess={({ width, height }) => {
+              onSizeChange?.({ width, height });
+            }}
+          />
         </Document>
       )}
+
+      {/* 페이지 네비게이션 */}
+      <div className="flex gap-4">
+        <button
+          onClick={goPrev}
+          disabled={currentPage <= 1}
+          className="bg-gray-300 px-4 py-2 rounded disabled:opacity-50"
+        >
+          이전
+        </button>
+        <span>
+          {currentPage} / {numPages || "?"}
+        </span>
+        <button
+          onClick={goNext}
+          disabled={currentPage >= (numPages || 0)}
+          className="bg-gray-300 px-4 py-2 rounded disabled:opacity-50"
+        >
+          다음
+        </button>
+      </div>
     </div>
   );
 };

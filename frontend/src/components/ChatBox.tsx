@@ -53,7 +53,7 @@ const ChatBox = () => {
 
   return (
     <div className="fixed bottom-0 left-0 z-50 w-60">
-      {/* 🔘 막대기 버튼 */}
+      {/* 막대기 버튼 */}
       <div
         className="bg-blue-600 text-white text-sm text-center py-1 rounded-t-lg cursor-pointer shadow-lg hover:bg-blue-700"
         onClick={() => setIsOpen((prev) => !prev)}
@@ -61,7 +61,7 @@ const ChatBox = () => {
         {isOpen ? "채팅 ▾" : "채팅 ▴"}
       </div>
 
-      {/* 💬 채팅창 */}
+      {/*  채팅창 */}
       <div
         className={`bg-white rounded-t-lg shadow-lg transition-all duration-300 overflow-hidden ${
           isOpen ? "opacity-100" : "opacity-0 max-h-0"

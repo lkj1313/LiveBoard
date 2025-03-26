@@ -40,7 +40,7 @@ router.get("/rooms", verifyToken, async (req, res) => {
   }
 });
 
-// ✅ 배경 이미지/PDF 저장용
+//  배경 이미지/PDF 저장용
 router.put("/:roomId/background", verifyToken, async (req, res) => {
   const { roomId } = req.params;
   const { backgroundUrl } = req.body;
@@ -57,7 +57,7 @@ router.put("/:roomId/background", verifyToken, async (req, res) => {
     res.status(500).json({ error: "Failed to update background" });
   }
 });
-// ✅ 특정 방 정보 조회
+// 특정 방 정보 조회
 router.get("/:roomId", verifyToken, async (req, res) => {
   try {
     const room = await Room.findById(req.params.roomId);

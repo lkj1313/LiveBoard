@@ -17,13 +17,11 @@ const Whiteboard = ({ roomName }: { roomName: string }) => {
   const { id } = useParams();
 
   const roomId = id!;
-  console.log(user);
 
   // ✏️ 그린기 기능 (캔버스 관련 로직 + 상태)
   const {
     canvasRef,
-    myStrokes,
-    otherStrokes,
+
     setMyStrokes,
     setOtherStrokes,
     hoveredNick,
@@ -67,7 +65,7 @@ const Whiteboard = ({ roomName }: { roomName: string }) => {
       : "";
 
   return (
-    <div>
+    <>
       {/* 입장문구 */}
       {userString && (
         <div className="text-sm text-gray-600 text-center py-2">
@@ -122,7 +120,7 @@ const Whiteboard = ({ roomName }: { roomName: string }) => {
           )}
         </div>
       </div>
-    </div>
+    </>
   );
 };
 

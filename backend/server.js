@@ -5,17 +5,14 @@ import cors from "cors";
 import cookieParser from "cookie-parser";
 import authRoutes from "./routes/auth.js";
 import roomRoutes from "./routes/room.js";
-import path from "path";
+
 import { canvasSocketHandler } from "./sockets/canvasSocket.js";
 import { createServer } from "http";
 import { Server } from "socket.io";
 import { chatSocketHandler } from "./sockets/chatSocket.js";
 
 const app = express();
-const server = createServer(app); // ✅ HTTP 서버 생성
-// 현재 파일 경로를 import.meta.url로 얻기
-const __filename = new URL(import.meta.url).pathname;
-const __dirname = path.dirname(__filename);
+const server = createServer(app); //  HTTP 서버 생성
 
 const io = new Server(server, {
   cors: {
@@ -33,7 +30,7 @@ app.use(
   })
 );
 app.use(cookieParser());
-app.use("/uploads", express.static(path.join(__dirname, "uploads")));
+
 // MongoDB 연결
 mongoose
   .connect(process.env.MONGO_URI, {})
