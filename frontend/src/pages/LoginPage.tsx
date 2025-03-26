@@ -6,7 +6,7 @@ const LoginPage = () => {
   const [email, setEmail] = useState("test@naver.com");
   const [password, setPassword] = useState("123456");
   const [error, setError] = useState<string | null>(null);
-  const setUser = useAuthStore((state) => state.setUser); // ✅ Zustand에서 `setUser` 가져오기
+  const setUser = useAuthStore((state) => state.setUser); //  Zustand에서 `setUser` 가져오기
 
   const navigate = useNavigate();
 
@@ -74,7 +74,7 @@ const LoginPage = () => {
           </div>
           <button
             type="submit"
-            className="w-full bg-blue-500 text-white py-2 rounded-lg hover:bg-blue-600 transition"
+            className="w-full bg-blue-500 text-white py-2 rounded-lg hover:bg-blue-600 transition cursor-pointer"
           >
             로그인
           </button>

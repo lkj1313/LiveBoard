@@ -1,9 +1,10 @@
 import { useState, useEffect } from "react";
-import { Link } from "react-router-dom";
+import { Link, Navigate, useNavigate } from "react-router-dom";
+import useAuthStore from "../store/authStore";
 const SERVER_URL = import.meta.env.VITE_SERVER_URL;
 const HomePage = () => {
   const [rooms, setRooms] = useState<any[]>([]);
-
+  const navigate = useNavigate();
   useEffect(() => {
     fetch(`${SERVER_URL}/room/rooms`, {
       method: "GET",
@@ -14,14 +15,17 @@ const HomePage = () => {
       .catch((err) => console.error("방 목록 불러오기 실패", err));
   }, []);
   console.log(rooms);
-  console.log(document.cookie);
+  const logout = useAuthStore((state) => state.logout);
+  const handleLogout = () => {
+    logout();
+    navigate("/");
+  };
   return (
     <div className="h-screen bg-gray-800 flex justify-center items-center">
       <div className="bg-gray-200 p-8 max-h-[480px] rounded-lg shadow-lg w-full max-w-md overflow-y-auto ">
         <h2 className="text-3xl font-bold text-center text-gray-700 mb-6">
           LiveBoard
         </h2>
-
         {/* 방 목록 */}
         <div className="space-y-4">
           <h3 className="text-xl text-gray-600 mb-2">방 목록</h3>
@@ -44,15 +48,22 @@ const HomePage = () => {
             ))
           )}
         </div>
-
         {/* 방 생성 버튼 */}
-        <div className="mt-6 ">
+        <div className="mt-6 flex flex-col gap-2">
           <Link
             to="/create-room"
-            className="p-2 bg-green-500 text-white rounded-lg hover:bg-green-600 transition"
+            className="p-2 bg-green-500 text-white rounded-lg hover:bg-green-600 transition text-center cursor-pointer"
           >
             새로운 방 만들기
           </Link>
+
+          {/* 로그아웃 버튼 */}
+          <button
+            onClick={handleLogout}
+            className="p-2 bg-red-500 text-white rounded-lg hover:bg-red-600 transition text-center cursor-pointer"
+          >
+            로그아웃
+          </button>
         </div>
       </div>
     </div>

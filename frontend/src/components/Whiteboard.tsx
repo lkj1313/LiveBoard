@@ -9,16 +9,17 @@ import useCanvas from "../hooks/useCanvas";
 import useSocketHandlers from "../hooks/useSocketHandlers";
 import useBackground from "../hooks/useBackground";
 import DrawingCanvas from "./DrawingCanvas";
-import ChatBox from "./ChatBox";
 
 const Whiteboard = ({ roomName }: { roomName: string }) => {
   const [isErasing, setIsErasing] = useState(false);
 
   const user = useAuthStore((state) => state.user);
   const { id } = useParams();
-  const roomId = id!;
 
-  // ✏️ 그린기 기능 (카바스 관련 로직 + 상태)
+  const roomId = id!;
+  console.log(user);
+
+  // ✏️ 그린기 기능 (캔버스 관련 로직 + 상태)
   const {
     canvasRef,
     myStrokes,
@@ -35,7 +36,7 @@ const Whiteboard = ({ roomName }: { roomName: string }) => {
     undo,
   } = useCanvas({ user, roomId });
 
-  // 포메이지 배경 (업로드, 사이즈, URL)
+  // 배경 (업로드, 사이즈, URL)
   const {
     backgroundUrl,
     setPdfSize,
@@ -62,7 +63,7 @@ const Whiteboard = ({ roomName }: { roomName: string }) => {
 
   const userString =
     userList && userList.length > 0
-      ? `${userList.join(", ")} 님(들)이 ${roomName}방에 입장하셔요!`
+      ? `${userList.join(", ")} 님(들)이 ${roomName}방에 입장하셨습니다!`
       : "";
 
   return (
@@ -85,7 +86,7 @@ const Whiteboard = ({ roomName }: { roomName: string }) => {
           fileName={fileName}
         />
 
-        {/* 카바스 + 배경 */}
+        {/* 캔버스  + 배경 */}
         <div className="relative w-[1000px]">
           {backgroundUrl?.includes(".pdf") ? (
             <PDFRenderer url={backgroundUrl} onSizeChange={setPdfSize} />

@@ -76,7 +76,14 @@ router.post("/login", async (req, res) => {
     res.status(500).json({ error: "서버 오류" });
   }
 });
-
+router.post("/logout", (req, res) => {
+  res.clearCookie("token", {
+    httpOnly: true,
+    secure: true,
+    sameSite: "None",
+  });
+  res.json({ message: "로그아웃 완료" });
+});
 // 로그인한 사용자 정보 가져오기
 router.get("/me", async (req, res) => {
   const token = req.cookies.token;
@@ -90,4 +97,5 @@ router.get("/me", async (req, res) => {
     res.status(401).json({ error: "유효하지 않은 토큰" });
   }
 });
+
 export default router;
