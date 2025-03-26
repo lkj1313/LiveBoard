@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { useNavigate, Link } from "react-router-dom";
 import InputField from "../components/common/InputField";
+import Button from "../components/common/Button";
 
 const SERVER_URL = import.meta.env.VITE_SERVER_URL;
 
@@ -61,6 +62,8 @@ const RegisterPage = () => {
             placeholder="이메일 입력"
             value={email}
             onChange={(e) => setEmail(e.target.value)}
+            className="w-full p-2 border border-gray-300 rounded-lg"
+            labelClassName="text-sm font-medium text-gray-700 mb-1 block"
           />
           <InputField
             id="nickname"
@@ -68,6 +71,8 @@ const RegisterPage = () => {
             placeholder="닉네임 입력"
             value={nickname}
             onChange={(e) => setNickname(e.target.value)}
+            className="w-full p-2 border border-gray-300 rounded-lg"
+            labelClassName="text-sm font-medium text-gray-700 mb-1 block"
           />
           <InputField
             id="password"
@@ -76,6 +81,8 @@ const RegisterPage = () => {
             placeholder="비밀번호 입력"
             value={password}
             onChange={(e) => setPassword(e.target.value)}
+            className="w-full p-2 border border-gray-300 rounded-lg"
+            labelClassName="text-sm font-medium text-gray-700 mb-1 block"
           />
           <InputField
             id="confirmPassword"
@@ -84,13 +91,12 @@ const RegisterPage = () => {
             placeholder="비밀번호 확인"
             value={confirmPassword}
             onChange={(e) => setConfirmPassword(e.target.value)}
+            className="w-full p-2 border border-gray-300 rounded-lg"
+            labelClassName="text-sm font-medium text-gray-700 mb-1 block"
           />
-          <button
-            type="submit"
-            className="w-full bg-green-500 text-white py-2 rounded-lg hover:bg-green-600 transition"
-          >
+          <Button type="submit" variant="success" className="w-full">
             회원가입
-          </button>
+          </Button>
         </form>
 
         <p className="text-center text-gray-600 mt-4">

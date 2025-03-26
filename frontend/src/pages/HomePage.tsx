@@ -1,6 +1,7 @@
 import { useState, useEffect } from "react";
 import { Link, Navigate, useNavigate } from "react-router-dom";
 import useAuthStore from "../store/authStore";
+import Button from "../components/common/Button";
 const SERVER_URL = import.meta.env.VITE_SERVER_URL;
 const HomePage = () => {
   const [rooms, setRooms] = useState<any[]>([]);
@@ -58,12 +59,9 @@ const HomePage = () => {
           </Link>
 
           {/* 로그아웃 버튼 */}
-          <button
-            onClick={handleLogout}
-            className="p-2 bg-red-500 text-white rounded-lg hover:bg-red-600 transition text-center cursor-pointer"
-          >
+          <Button onClick={handleLogout} variant="danger" className="w-full">
             로그아웃
-          </button>
+          </Button>
         </div>
       </div>
     </div>

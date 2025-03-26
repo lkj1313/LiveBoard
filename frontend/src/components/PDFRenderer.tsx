@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { Document, Page, pdfjs } from "react-pdf";
 import "core-js/full/promise/with-resolvers.js";
+import Button from "./common/Button";
 
 pdfjs.GlobalWorkerOptions.workerSrc = new URL(
   "pdfjs-dist/legacy/build/pdf.worker.min.mjs",
@@ -53,24 +54,26 @@ const PDFViewer = ({ url, onSizeChange }: PDFViewerProps) => {
       )}
 
       {/* 페이지 네비게이션 */}
-      <div className="flex gap-4">
-        <button
+      <div className="flex flex-row gap-2 items-center">
+        <Button
           onClick={goPrev}
           disabled={currentPage <= 1}
-          className="bg-gray-300 px-4 py-2 rounded disabled:opacity-50"
+          variant="secondary"
+          className="px-4 py-2 "
         >
           이전
-        </button>
+        </Button>
         <span>
           {currentPage} / {numPages || "?"}
         </span>
-        <button
+        <Button
           onClick={goNext}
           disabled={currentPage >= (numPages || 0)}
-          className="bg-gray-300 px-4 py-2 rounded disabled:opacity-50"
+          variant="secondary"
+          className="px-4 py-2 "
         >
           다음
-        </button>
+        </Button>
       </div>
     </div>
   );

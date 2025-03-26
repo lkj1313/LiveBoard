@@ -2,6 +2,8 @@ import { useEffect, useRef, useState } from "react";
 import { socket } from "../utils/socket"; // 이미 쓰고 있던 소켓 인스턴스
 import { useParams } from "react-router-dom";
 import useAuthStore from "../store/authStore";
+import InputField from "./common/InputField";
+import Button from "./common/Button";
 type ChatMessage = {
   user: {
     userId: string;
@@ -83,15 +85,22 @@ const ChatBox = () => {
 
         {/* 입력창 */}
         <form onSubmit={handleSend} className="flex border-t text-sm">
-          <input
-            className="flex-1 p-2"
+          <InputField
+            label=""
+            id="chat-input"
+            placeholder="메시지를 입력하세요..."
             value={input}
             onChange={(e) => setInput(e.target.value)}
-            placeholder="메시지를 입력하세요..."
+            required={false}
+            className="flex-1 p-2" // ✅ 스타일 적용
           />
-          <button className="bg-blue-500 text-white px-3" type="submit">
+          <Button
+            type="submit"
+            variant="primary"
+            className="px-3 flex-1 w-full"
+          >
             전송
-          </button>
+          </Button>
         </form>
       </div>
     </div>

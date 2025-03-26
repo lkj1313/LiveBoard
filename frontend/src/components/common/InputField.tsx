@@ -1,3 +1,5 @@
+import React, { forwardRef } from "react";
+
 type InputFieldProps = {
   id: string;
   label: string;
@@ -6,33 +8,49 @@ type InputFieldProps = {
   onChange: (e: React.ChangeEvent<HTMLInputElement>) => void;
   required?: boolean;
   placeholder?: string;
+  className?: string;
+  labelClassName?: string;
+  accept?: string;
 };
 
-const InputField = ({
-  id,
-  label,
-  type = "text",
-  value,
-  onChange,
-  required = true,
-  placeholder,
-}: InputFieldProps) => {
-  return (
-    <div>
-      <label htmlFor={id} className="block text-gray-700">
-        {label}
-      </label>
-      <input
-        id={id}
-        type={type}
-        className="w-full p-2 border border-gray-300 rounded-lg focus:ring focus:ring-blue-200"
-        placeholder={placeholder}
-        value={value}
-        onChange={onChange}
-        required={required}
-      />
-    </div>
-  );
-};
+// forwardRef 적용!
+const InputField = forwardRef<HTMLInputElement, InputFieldProps>(
+  (
+    {
+      id,
+      label,
+      type = "text",
+      value,
+      onChange,
+      required = true,
+      placeholder,
+      className = "",
+      labelClassName = "",
+      accept,
+    },
+    ref
+  ) => {
+    return (
+      <div>
+        {label && (
+          <label htmlFor={id} className={labelClassName}>
+            {label}
+          </label>
+        )}
+        <input
+          id={id}
+          ref={ref}
+          type={type}
+          value={value}
+          onChange={onChange}
+          required={required}
+          placeholder={placeholder}
+          className={className}
+          accept={accept}
+        />
+      </div>
+    );
+  }
+);
 
 export default InputField;

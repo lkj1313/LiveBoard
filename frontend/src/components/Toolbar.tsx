@@ -1,6 +1,7 @@
 // components/Toolbar.tsx
 import React from "react";
 import FileUploader from "./FileUploader";
+import Button from "./common/Button";
 
 interface ToolbarProps {
   fileName: string;
@@ -23,32 +24,28 @@ const Toolbar: React.FC<ToolbarProps> = ({
 }) => {
   return (
     <div className="flex gap-2 mb-4 py-2 bg-white bg-opacity-80 rounded shadow z-10">
-      <button
+      <Button
         onClick={onToggleDraw}
-        className={`px-3 py-2 rounded border ${
-          !isErasing
-            ? "bg-blue-500 text-white"
-            : "bg-gray-200 text-black border-gray-300"
-        }`}
+        variant={!isErasing ? "primary" : "secondary"}
+        className="px-3 py-2"
       >
         ✏️ 그리기
-      </button>
-      <button
+      </Button>
+      <Button
         onClick={onToggleErase}
-        className={`px-3 py-2 rounded border ${
+        className={`px-3 py-2 text-white rounded transition ${
           isErasing
-            ? "bg-red-500 text-white"
-            : "bg-gray-200 text-black border-gray-300"
+            ? "bg-red-600 hover:bg-red-600"
+            : "bg-red-400 hover:bg-red-500"
         }`}
       >
         🧹 지우기
-      </button>
-      <button
-        onClick={onClear}
-        className="px-3 py-2 rounded border bg-red-400 text-white border-gray-300"
-      >
-        ❌ 전체 지우기
-      </button>
+      </Button>
+
+      <Button onClick={onClear} variant="danger" className="px-3 py-2 t">
+        🗑️ 전체 지우기
+      </Button>
+
       <FileUploader
         onUpload={onUpload}
         fileName={fileName}

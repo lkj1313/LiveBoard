@@ -2,6 +2,7 @@ import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import useAuthStore from "../store/authStore";
 import InputField from "../components/common/InputField";
+import Button from "../components/common/Button";
 
 const SERVER_URL = import.meta.env.VITE_SERVER_URL;
 
@@ -10,7 +11,6 @@ const LoginPage = () => {
   const [password, setPassword] = useState("123456");
   const [error, setError] = useState<string | null>(null);
   const setUser = useAuthStore((state) => state.setUser);
-
   const navigate = useNavigate();
 
   const handleLogin = async (e: React.FormEvent) => {
@@ -53,6 +53,8 @@ const LoginPage = () => {
             placeholder="이메일 입력"
             value={email}
             onChange={(e) => setEmail(e.target.value)}
+            className="w-full p-2 border border-gray-300 rounded-lg"
+            labelClassName="text-sm font-medium text-gray-700 mb-1 block"
           />
           <InputField
             id="password"
@@ -61,13 +63,10 @@ const LoginPage = () => {
             placeholder="비밀번호 입력"
             value={password}
             onChange={(e) => setPassword(e.target.value)}
+            className="w-full p-2 border border-gray-300 rounded-lg"
+            labelClassName="text-sm font-medium text-gray-700 mb-1 block"
           />
-          <button
-            type="submit"
-            className="w-full bg-blue-500 text-white py-2 rounded-lg hover:bg-blue-600 transition cursor-pointer"
-          >
-            로그인
-          </button>
+          <Button type="submit">로그인</Button>
         </form>
 
         <p className="text-center text-gray-600 mt-4">

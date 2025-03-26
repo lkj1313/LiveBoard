@@ -1,4 +1,6 @@
 import { useRef } from "react";
+import InputField from "./common/InputField";
+import Button from "./common/Button";
 
 interface UploadProps {
   onUpload: (e: React.ChangeEvent<HTMLInputElement>) => void;
@@ -26,24 +28,29 @@ const FileUploader = ({ onUpload, onClear, fileName }: UploadProps) => {
       선택된 파일: {fileName}
       {/* X 버튼 (우측 상단) */}
       {fileName !== "선택된 파일 없음" && (
-        <button
+        <Button
           onClick={(e) => {
-            e.stopPropagation(); // X 버튼 클릭 시 input 안 열리게 막기
+            e.stopPropagation();
             handleClear();
           }}
-          className="absolute -top-2 -right-2 bg-red-500 text-white rounded-full w-5 h-5 text-xs flex items-center justify-center hover:bg-red-600"
+          variant="danger"
+          className="absolute -top-2 -right-2 w-5 h-5 p-0 text-xs flex items-center justify-center rounded-full"
           title="파일 제거"
         >
           ×
-        </button>
+        </Button>
       )}
       {/* 숨겨진 파일 input */}
-      <input
+      <InputField
+        id="file-upload"
         type="file"
-        accept="application/pdf,image/*"
         onChange={onUpload}
+        value=""
         ref={inputRef}
         className="hidden"
+        required={false}
+        label=""
+        accept="application/pdf,image/*"
       />
     </div>
   );
