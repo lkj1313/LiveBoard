@@ -1,6 +1,9 @@
 import { useState } from "react";
 import { useNavigate, Link } from "react-router-dom";
+import InputField from "../components/common/InputField";
+
 const SERVER_URL = import.meta.env.VITE_SERVER_URL;
+
 const RegisterPage = () => {
   const [nickname, setNickname] = useState("");
   const [email, setEmail] = useState("");
@@ -51,62 +54,37 @@ const RegisterPage = () => {
         {error && <p className="text-red-500 text-center">{error}</p>}
 
         <form className="space-y-4" onSubmit={handleRegister}>
-          <div>
-            <label htmlFor="email" className="block text-gray-700">
-              이메일
-            </label>
-            <input
-              id="email"
-              type="email"
-              className="w-full p-2 border border-gray-300 rounded-lg focus:ring focus:ring-blue-200"
-              placeholder="이메일 입력"
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
-              required
-            />
-          </div>
-          <div>
-            <label htmlFor="nickname" className="block text-gray-700">
-              닉네임
-            </label>
-            <input
-              id="nickname"
-              type="text"
-              className="w-full p-2 border border-gray-300 rounded-lg focus:ring focus:ring-blue-200"
-              placeholder="닉네임 입력"
-              value={nickname}
-              onChange={(e) => setNickname(e.target.value)}
-              required
-            />
-          </div>
-          <div>
-            <label htmlFor="password" className="block text-gray-700">
-              비밀번호 (6자 이상)
-            </label>
-            <input
-              id="password"
-              type="password"
-              className="w-full p-2 border border-gray-300 rounded-lg focus:ring focus:ring-blue-200"
-              placeholder="비밀번호 입력"
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
-              required
-            />
-          </div>
-          <div>
-            <label htmlFor="confirmPassword" className="block text-gray-700">
-              비밀번호 확인
-            </label>
-            <input
-              id="confirmPassword"
-              type="password"
-              className="w-full p-2 border border-gray-300 rounded-lg focus:ring focus:ring-blue-200"
-              placeholder="비밀번호 확인"
-              value={confirmPassword}
-              onChange={(e) => setConfirmPassword(e.target.value)}
-              required
-            />
-          </div>
+          <InputField
+            id="email"
+            label="이메일"
+            type="email"
+            placeholder="이메일 입력"
+            value={email}
+            onChange={(e) => setEmail(e.target.value)}
+          />
+          <InputField
+            id="nickname"
+            label="닉네임"
+            placeholder="닉네임 입력"
+            value={nickname}
+            onChange={(e) => setNickname(e.target.value)}
+          />
+          <InputField
+            id="password"
+            label="비밀번호 (6자 이상)"
+            type="password"
+            placeholder="비밀번호 입력"
+            value={password}
+            onChange={(e) => setPassword(e.target.value)}
+          />
+          <InputField
+            id="confirmPassword"
+            label="비밀번호 확인"
+            type="password"
+            placeholder="비밀번호 확인"
+            value={confirmPassword}
+            onChange={(e) => setConfirmPassword(e.target.value)}
+          />
           <button
             type="submit"
             className="w-full bg-green-500 text-white py-2 rounded-lg hover:bg-green-600 transition"
@@ -117,7 +95,7 @@ const RegisterPage = () => {
 
         <p className="text-center text-gray-600 mt-4">
           이미 계정이 있으신가요?{" "}
-          <Link to="/login" className="text-blue-500 hover:underline">
+          <Link to="/" className="text-blue-500 hover:underline">
             로그인
           </Link>
         </p>

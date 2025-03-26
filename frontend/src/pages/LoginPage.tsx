@@ -1,12 +1,15 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import useAuthStore from "../store/authStore";
+import InputField from "../components/common/InputField";
+
 const SERVER_URL = import.meta.env.VITE_SERVER_URL;
+
 const LoginPage = () => {
   const [email, setEmail] = useState("test@naver.com");
   const [password, setPassword] = useState("123456");
   const [error, setError] = useState<string | null>(null);
-  const setUser = useAuthStore((state) => state.setUser); //  Zustand에서 `setUser` 가져오기
+  const setUser = useAuthStore((state) => state.setUser);
 
   const navigate = useNavigate();
 
@@ -19,16 +22,15 @@ const LoginPage = () => {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ email, password }),
-        credentials: "include", // 로그인 시 쿠키 포함
+        credentials: "include",
       });
 
       const data = await res.json();
       if (!res.ok) throw new Error(data.error);
       setUser({ nickname: data.nickname, userId: data.userId });
 
-      // 로그인 성공 후 화이트보드 페이지로 이동
       alert("로그인 성공!");
-      navigate("/home"); // `/board` 페이지로 이동
+      navigate("/home");
     } catch (err) {
       setError(err instanceof Error ? err.message : "로그인 실패");
     }
@@ -44,34 +46,22 @@ const LoginPage = () => {
         {error && <p className="text-red-500 text-center">{error}</p>}
 
         <form className="space-y-4" onSubmit={handleLogin}>
-          <div>
-            <label htmlFor="email" className="block text-gray-700">
-              이메일
-            </label>
-            <input
-              id="email"
-              type="email"
-              className="w-full p-2 border border-gray-300 rounded-lg focus:ring focus:ring-blue-200"
-              placeholder="이메일 입력"
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
-              required
-            />
-          </div>
-          <div>
-            <label htmlFor="password" className="block text-gray-700">
-              비밀번호
-            </label>
-            <input
-              id="password"
-              type="password"
-              className="w-full p-2 border border-gray-300 rounded-lg focus:ring focus:ring-blue-200"
-              placeholder="비밀번호 입력"
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
-              required
-            />
-          </div>
+          <InputField
+            id="email"
+            label="이메일"
+            type="email"
+            placeholder="이메일 입력"
+            value={email}
+            onChange={(e) => setEmail(e.target.value)}
+          />
+          <InputField
+            id="password"
+            label="비밀번호"
+            type="password"
+            placeholder="비밀번호 입력"
+            value={password}
+            onChange={(e) => setPassword(e.target.value)}
+          />
           <button
             type="submit"
             className="w-full bg-blue-500 text-white py-2 rounded-lg hover:bg-blue-600 transition cursor-pointer"
