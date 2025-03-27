@@ -7,6 +7,7 @@ interface DrawingCanvasProps {
   draw: (e: React.MouseEvent<HTMLCanvasElement>) => void;
   handleHover: (e: React.MouseEvent<HTMLCanvasElement>) => void;
   stopDrawing: () => void;
+  redrawCanvas: () => void;
 }
 
 const DrawingCanvas: React.FC<DrawingCanvasProps> = ({
@@ -16,6 +17,7 @@ const DrawingCanvas: React.FC<DrawingCanvasProps> = ({
   draw,
   handleHover,
   stopDrawing,
+  redrawCanvas,
 }) => {
   useEffect(() => {
     const canvas = canvasRef.current;
@@ -27,6 +29,7 @@ const DrawingCanvas: React.FC<DrawingCanvasProps> = ({
     };
 
     resizeCanvas(); // 초기 설정
+    redrawCanvas();
     window.addEventListener("resize", resizeCanvas);
 
     return () => {

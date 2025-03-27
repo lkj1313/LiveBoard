@@ -106,6 +106,7 @@ const Whiteboard = ({ roomName }: { roomName: string }) => {
             draw={draw}
             handleHover={handleHover}
             stopDrawing={stopDrawing}
+            redrawCanvas={redrawCanvas}
           />
 
           {/* Hover 닉네임 */}
