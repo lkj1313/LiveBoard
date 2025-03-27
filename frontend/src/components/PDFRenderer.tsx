@@ -17,7 +17,16 @@ const PDFViewer = ({ url, onSizeChange }: PDFViewerProps) => {
   const [numPages, setNumPages] = useState<number>();
   const [currentPage, setCurrentPage] = useState(1);
   const [pdfBlob, setPdfBlob] = useState<Blob | null>(null);
+  const [screenHeight, setScreenHeight] = useState(window.innerHeight);
 
+  //  창 크기(resize) 변화에 따라 화면 높이(screenHeight) 상태 갱신
+  useEffect(() => {
+    const handleResize = () => setScreenHeight(window.innerHeight);
+    window.addEventListener("resize", handleResize);
+
+    // 컴포넌트 언마운트 시 이벤트 제거 (clean up)
+    return () => window.removeEventListener("resize", handleResize);
+  }, []);
   useEffect(() => {
     const fetchPDF = async () => {
       const res = await fetch(url);
@@ -45,7 +54,7 @@ const PDFViewer = ({ url, onSizeChange }: PDFViewerProps) => {
         >
           <Page
             pageNumber={currentPage}
-            width={1000}
+            height={screenHeight}
             onRenderSuccess={({ width, height }) => {
               onSizeChange?.({ width, height });
             }}
@@ -54,7 +63,7 @@ const PDFViewer = ({ url, onSizeChange }: PDFViewerProps) => {
       )}
 
       {/* 페이지 네비게이션 */}
-      <div className="flex flex-row gap-2 items-center">
+      <div className="flex flex-row gap-2 items-center z-60">
         <Button
           onClick={goPrev}
           disabled={currentPage <= 1}

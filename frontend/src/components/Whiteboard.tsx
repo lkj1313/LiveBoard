@@ -65,7 +65,7 @@ const Whiteboard = ({ roomName }: { roomName: string }) => {
       : "";
 
   return (
-    <>
+    <div className="w-full">
       {/* 입장문구 */}
       {userString && (
         <div className="text-sm text-gray-600 text-center py-2">
@@ -85,7 +85,7 @@ const Whiteboard = ({ roomName }: { roomName: string }) => {
         />
 
         {/* 캔버스  + 배경 */}
-        <div className="relative w-[1000px]">
+        <div className="relative w-full h-screen">
           {backgroundUrl?.includes(".pdf") ? (
             <PDFRenderer url={backgroundUrl} onSizeChange={setPdfSize} />
           ) : (
@@ -100,8 +100,6 @@ const Whiteboard = ({ roomName }: { roomName: string }) => {
 
           <DrawingCanvas
             canvasRef={canvasRef}
-            width={pdfSize.width}
-            height={pdfSize.height}
             isErasing={isErasing}
             handleMouseDown={(e) => handleMouseDown(e, isErasing)}
             draw={draw}
@@ -120,7 +118,7 @@ const Whiteboard = ({ roomName }: { roomName: string }) => {
           )}
         </div>
       </div>
-    </>
+    </div>
   );
 };
 

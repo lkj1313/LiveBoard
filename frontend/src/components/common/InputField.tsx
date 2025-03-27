@@ -13,7 +13,7 @@ type InputFieldProps = {
   accept?: string;
 };
 
-// forwardRef 적용!
+// forwardRef
 const InputField = forwardRef<HTMLInputElement, InputFieldProps>(
   (
     {

@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from "react";
-import { socket } from "../utils/socket"; // 이미 쓰고 있던 소켓 인스턴스
+import { socket } from "../utils/socket";
 import { useParams } from "react-router-dom";
 import useAuthStore from "../store/authStore";
 import InputField from "./common/InputField";
@@ -30,7 +30,7 @@ const ChatBox = () => {
       socket.off("chatMessage");
     };
   }, []);
-  // ✅ 내가 보낼 때만 스크롤 내리기
+  //  내가 보낼 때만 스크롤 내리기
   const scrollToBottom = () => {
     if (chatContainerRef.current) {
       chatContainerRef.current.scrollTop =

@@ -27,23 +27,30 @@ const Toolbar: React.FC<ToolbarProps> = ({
       <Button
         onClick={onToggleDraw}
         variant={!isErasing ? "primary" : "secondary"}
+        title="그리기"
         className="px-3 py-2"
       >
-        ✏️ 그리기
+        ✏️
       </Button>
       <Button
         onClick={onToggleErase}
+        title="지우기"
         className={`px-3 py-2 text-white rounded transition ${
           isErasing
             ? "bg-red-600 hover:bg-red-600"
             : "bg-red-400 hover:bg-red-500"
         }`}
       >
-        🧹 지우기
+        🧹
       </Button>
 
-      <Button onClick={onClear} variant="danger" className="px-3 py-2 t">
-        🗑️ 전체 지우기
+      <Button
+        onClick={onClear}
+        variant="danger"
+        title="전체 지우기"
+        className="px-3 py-2 t"
+      >
+        🗑️
       </Button>
 
       <FileUploader

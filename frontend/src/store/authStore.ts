@@ -1,13 +1,12 @@
 import { create } from "zustand";
 const SERVER_URL = import.meta.env.VITE_SERVER_URL;
 
-// ✅ 상태 타입 정의
 interface AuthState {
   user: { nickname: string; userId: string } | null;
   setUser: (user: { nickname: string; userId: string }) => void;
   logout: () => void;
 }
-// ✅ 로그인 상태 관리하는 Zustand 스토어
+// 로그인 상태 관리하는 Zustand 스토어
 export const useAuthStore = create<AuthState>((set) => ({
   user: null,
   setUser: (user) => set({ user }),

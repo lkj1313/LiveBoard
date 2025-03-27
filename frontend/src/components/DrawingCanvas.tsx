@@ -1,9 +1,7 @@
-import React from "react";
+import React, { useEffect } from "react";
 
 interface DrawingCanvasProps {
   canvasRef: React.RefObject<HTMLCanvasElement | null>;
-  width: number;
-  height: number;
   isErasing: boolean;
   handleMouseDown: (e: React.MouseEvent<HTMLCanvasElement>) => void;
   draw: (e: React.MouseEvent<HTMLCanvasElement>) => void;
@@ -13,20 +11,32 @@ interface DrawingCanvasProps {
 
 const DrawingCanvas: React.FC<DrawingCanvasProps> = ({
   canvasRef,
-  width,
-  height,
   isErasing,
   handleMouseDown,
   draw,
   handleHover,
   stopDrawing,
 }) => {
+  useEffect(() => {
+    const canvas = canvasRef.current;
+    if (!canvas) return;
+
+    const resizeCanvas = () => {
+      canvas.width = canvas.offsetWidth;
+      canvas.height = canvas.offsetHeight;
+    };
+
+    resizeCanvas(); // 초기 설정
+    window.addEventListener("resize", resizeCanvas);
+
+    return () => {
+      window.removeEventListener("resize", resizeCanvas);
+    };
+  }, []);
   return (
     <canvas
       ref={canvasRef}
-      width={width}
-      height={height}
-      className={`absolute top-0 left-0 border border-black z-10 ${
+      className={`absolute top-0 left-0 border-t border-b z-10 w-full h-full ${
         isErasing ? "cursor-cell" : "cursor-crosshair"
       }`}
       onMouseDown={handleMouseDown}

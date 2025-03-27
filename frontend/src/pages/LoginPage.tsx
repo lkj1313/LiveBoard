@@ -66,7 +66,9 @@ const LoginPage = () => {
             className="w-full p-2 border border-gray-300 rounded-lg"
             labelClassName="text-sm font-medium text-gray-700 mb-1 block"
           />
-          <Button type="submit">로그인</Button>
+          <Button type="submit" variant="primary" className="w-full">
+            로그인
+          </Button>
         </form>
 
         <p className="text-center text-gray-600 mt-4">

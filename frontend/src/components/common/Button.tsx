@@ -10,7 +10,7 @@ const Button = ({
   disabled = false,
   className = "",
   variant,
-  ...rest // 🔥 나머지 props (title 등) 받기
+  ...rest // 나머지 props (title 등) 받기
 }: ButtonProps) => {
   const base = "py-2 rounded-lg transition cursor-pointer font-medium";
 
