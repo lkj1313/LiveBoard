@@ -21,7 +21,8 @@ const Whiteboard = ({ roomName }: { roomName: string }) => {
   // ✏️ 그린기 기능 (캔버스 관련 로직 + 상태)
   const {
     canvasRef,
-
+    myStrokes,
+    otherStrokes,
     setMyStrokes,
     setOtherStrokes,
     hoveredNick,
@@ -32,17 +33,19 @@ const Whiteboard = ({ roomName }: { roomName: string }) => {
     handleHover,
     clearCanvas,
     undo,
+    redrawCanvas,
+    imageObj,
+    setImageObj,
   } = useCanvas({ user, roomId });
 
   // 배경 (업로드, 사이즈, URL)
   const {
     backgroundUrl,
     setPdfSize,
-    pdfSize,
     handleFileUpload,
     clearBackground,
     fileName,
-  } = useBackground(roomId);
+  } = useBackground(roomId, redrawCanvas, setImageObj);
 
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
@@ -86,16 +89,14 @@ const Whiteboard = ({ roomName }: { roomName: string }) => {
 
         {/* 캔버스  + 배경 */}
         <div className="relative w-full h-screen">
-          {backgroundUrl?.includes(".pdf") ? (
-            <PDFRenderer url={backgroundUrl} onSizeChange={setPdfSize} />
-          ) : (
-            backgroundUrl && (
-              <img
-                src={backgroundUrl}
-                alt="background"
-                className="absolute top-0 left-0 w-[800px] h-[600px] object-contain pointer-events-none z-0"
-              />
-            )
+          {backgroundUrl?.includes(".pdf") && (
+            <PDFRenderer
+              url={backgroundUrl}
+              onSizeChange={setPdfSize}
+              redrawCanvas={redrawCanvas}
+              myStrokes={myStrokes}
+              otherStrokes={otherStrokes}
+            />
           )}
 
           <DrawingCanvas

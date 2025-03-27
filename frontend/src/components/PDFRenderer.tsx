@@ -2,7 +2,7 @@ import { useEffect, useState } from "react";
 import { Document, Page, pdfjs } from "react-pdf";
 import "core-js/full/promise/with-resolvers.js";
 import Button from "./common/Button";
-
+import Stroke from "../type/Stroke";
 pdfjs.GlobalWorkerOptions.workerSrc = new URL(
   "pdfjs-dist/legacy/build/pdf.worker.min.mjs",
   import.meta.url
@@ -10,10 +10,12 @@ pdfjs.GlobalWorkerOptions.workerSrc = new URL(
 
 interface PDFViewerProps {
   url: string;
-  onSizeChange: (size: { width: number; height: number }) => void;
+  onSizeChange?: (size: { width: number; height: number }) => void;
+  redrawCanvas: () => void;
+  myStrokes: Stroke[];
+  otherStrokes: Stroke[];
 }
-
-const PDFViewer = ({ url, onSizeChange }: PDFViewerProps) => {
+const PDFViewer = ({ url, onSizeChange, redrawCanvas }: PDFViewerProps) => {
   const [numPages, setNumPages] = useState<number>();
   const [currentPage, setCurrentPage] = useState(1);
   const [pdfBlob, setPdfBlob] = useState<Blob | null>(null);
@@ -23,7 +25,7 @@ const PDFViewer = ({ url, onSizeChange }: PDFViewerProps) => {
   useEffect(() => {
     const handleResize = () => setScreenHeight(window.innerHeight);
     window.addEventListener("resize", handleResize);
-
+    redrawCanvas();
     // 컴포넌트 언마운트 시 이벤트 제거 (clean up)
     return () => window.removeEventListener("resize", handleResize);
   }, []);

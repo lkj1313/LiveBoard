@@ -6,7 +6,13 @@ interface UseCanvasProps {
   user: { userId: string; nickname: string } | null;
   roomId: string;
 }
-
+type ImageObjType = {
+  img: HTMLImageElement;
+  x: number;
+  y: number;
+  isDragging: boolean;
+  id: string; // 유니크 ID 필요!
+};
 const useCanvas = ({ user, roomId }: UseCanvasProps) => {
   const canvasRef = useRef<HTMLCanvasElement | null>(null);
   const [myStrokes, setMyStrokes] = useState<Stroke[]>([]);
@@ -18,6 +24,17 @@ const useCanvas = ({ user, roomId }: UseCanvasProps) => {
   );
   const currentStrokeRef = useRef<Stroke | null>(null);
   const [isDrawing, setIsDrawing] = useState(false);
+  const [imageObj, setImageObj] = useState<{
+    img: HTMLImageElement | null;
+    x: number;
+    y: number;
+    isDragging: boolean;
+  }>({
+    img: null,
+    x: 100,
+    y: 100,
+    isDragging: false,
+  });
 
   const pushUndoStack = () => {
     if (!user) return;
@@ -132,6 +149,13 @@ const useCanvas = ({ user, roomId }: UseCanvasProps) => {
     if (!canvas || !ctx) return;
 
     ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+    // ✅ 이미지 먼저 그리기 (배경처럼 보이게 하려면 선보다 먼저)
+    if (imageObj.img) {
+      ctx.drawImage(imageObj.img, imageObj.x, imageObj.y, 150, 150);
+    }
+
+    // ✅ 선 그리기
     [...otherStrokes, ...myStrokes].forEach((stroke) => {
       ctx.beginPath();
       stroke.points.forEach((point, i) => {
@@ -161,6 +185,9 @@ const useCanvas = ({ user, roomId }: UseCanvasProps) => {
     handleHover,
     clearCanvas,
     undo,
+    redrawCanvas,
+    imageObj,
+    setImageObj,
   };
 };
 

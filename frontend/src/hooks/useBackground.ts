@@ -1,27 +1,61 @@
 import { useEffect, useState } from "react";
 import { ref, uploadBytes, getDownloadURL } from "firebase/storage";
 import { storage } from "../utils/firebase";
+type ImageObjType = {
+  img: HTMLImageElement | null;
+  x: number;
+  y: number;
+  isDragging: boolean;
+};
 const SERVER_URL = import.meta.env.VITE_SERVER_URL;
-const useBackground = (roomId: string | undefined) => {
+const useBackground = (
+  roomId: string | undefined,
+  redrawCanvas: () => void,
+  setImageObj: React.Dispatch<React.SetStateAction<ImageObjType>>
+) => {
   const [backgroundUrl, setBackgroundUrl] = useState<string | null>(null);
   const [pdfSize, setPdfSize] = useState({ width: 1000, height: 1000 });
   const [fileName, setFileName] = useState("선택된 파일 없음");
+
   const handleFileUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file || !roomId) return;
 
-    const storageRef = ref(storage, `uploads/${file.name}-${Date.now()}`);
-    await uploadBytes(storageRef, file);
-    const url = await getDownloadURL(storageRef);
-    setBackgroundUrl(url);
-    setFileName(file.name); // ✅ 업로드 후 파일명 저장
+    // PDF 파일일 경우 → 배경 업로드
+    if (file.type === "application/pdf") {
+      const storageRef = ref(storage, `uploads/${file.name}-${Date.now()}`);
+      await uploadBytes(storageRef, file);
+      const url = await getDownloadURL(storageRef);
+      setBackgroundUrl(url);
+      setFileName(file.name);
 
-    await fetch(`${SERVER_URL}/room/${roomId}/background`, {
-      method: "PUT",
-      headers: { "Content-Type": "application/json" },
-      credentials: "include",
-      body: JSON.stringify({ backgroundUrl: url }),
-    });
+      await fetch(`${SERVER_URL}/room/${roomId}/background`, {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        credentials: "include",
+        body: JSON.stringify({ backgroundUrl: url }),
+      });
+      return;
+    }
+
+    // 이미지 파일일 경우 → 드래그 가능한 이미지 객체로 캔버스에 추가
+    if (file.type.startsWith("image/")) {
+      const img = new Image();
+      img.src = URL.createObjectURL(file);
+      img.onload = () => {
+        setImageObj({
+          img,
+          x: 100,
+          y: 100,
+          isDragging: false,
+        });
+        redrawCanvas(); // 캔버스 다시 그림
+      };
+      return;
+    }
+
+    // 기타 허용되지 않은 파일
+    alert("PDF 또는 이미지 파일만 업로드할 수 있습니다.");
   };
 
   const clearBackground = async () => {
