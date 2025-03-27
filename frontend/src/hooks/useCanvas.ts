@@ -6,13 +6,15 @@ interface UseCanvasProps {
   user: { userId: string; nickname: string } | null;
   roomId: string;
 }
+
 type ImageObjType = {
   img: HTMLImageElement;
   x: number;
   y: number;
   isDragging: boolean;
-  id: string; // 유니크 ID 필요!
+  id: string;
 };
+
 const useCanvas = ({ user, roomId }: UseCanvasProps) => {
   const canvasRef = useRef<HTMLCanvasElement | null>(null);
   const [myStrokes, setMyStrokes] = useState<Stroke[]>([]);
@@ -24,16 +26,11 @@ const useCanvas = ({ user, roomId }: UseCanvasProps) => {
   );
   const currentStrokeRef = useRef<Stroke | null>(null);
   const [isDrawing, setIsDrawing] = useState(false);
-  const [imageObj, setImageObj] = useState<{
-    img: HTMLImageElement | null;
-    x: number;
-    y: number;
-    isDragging: boolean;
-  }>({
-    img: null,
-    x: 100,
-    y: 100,
-    isDragging: false,
+  const [imageObjs, setImageObjs] = useState<ImageObjType[]>([]);
+  const [draggingImageId, setDraggingImageId] = useState<string | null>(null);
+  const [dragOffset, setDragOffset] = useState<{ x: number; y: number }>({
+    x: 0,
+    y: 0,
   });
 
   const pushUndoStack = () => {
@@ -65,6 +62,25 @@ const useCanvas = ({ user, roomId }: UseCanvasProps) => {
     if (!user) return;
     const { offsetX, offsetY } = e.nativeEvent;
 
+    for (let i = imageObjs.length - 1; i >= 0; i--) {
+      const img = imageObjs[i];
+      if (
+        offsetX >= img.x &&
+        offsetX <= img.x + 150 &&
+        offsetY >= img.y &&
+        offsetY <= img.y + 150
+      ) {
+        setDraggingImageId(img.id);
+        setImageObjs((prev) =>
+          prev.map((el) =>
+            el.id === img.id ? { ...el, isDragging: true } : el
+          )
+        );
+        setDragOffset({ x: offsetX - img.x, y: offsetY - img.y });
+        return;
+      }
+    }
+
     if (isErasing) {
       erase(offsetX, offsetY);
       return;
@@ -84,8 +100,24 @@ const useCanvas = ({ user, roomId }: UseCanvasProps) => {
   };
 
   const draw = (e: React.MouseEvent<HTMLCanvasElement>) => {
-    if (!isDrawing || !currentStrokeRef.current) return;
     const { offsetX, offsetY } = e.nativeEvent;
+
+    if (draggingImageId) {
+      setImageObjs((prev) =>
+        prev.map((img) =>
+          img.id === draggingImageId
+            ? {
+                ...img,
+                x: offsetX - dragOffset.x,
+                y: offsetY - dragOffset.y,
+              }
+            : img
+        )
+      );
+      return;
+    }
+
+    if (!isDrawing || !currentStrokeRef.current) return;
     currentStrokeRef.current.points.push({ x: offsetX, y: offsetY });
     setMyStrokes((prev) => {
       const updated = [...prev];
@@ -97,6 +129,18 @@ const useCanvas = ({ user, roomId }: UseCanvasProps) => {
 
   const stopDrawing = () => {
     setIsDrawing(false);
+
+    if (draggingImageId) {
+      setImageObjs((prev) =>
+        prev.map((img) =>
+          img.id === draggingImageId ? { ...img, isDragging: false } : img
+        )
+      );
+      setDraggingImageId(null);
+      setDragOffset({ x: 0, y: 0 });
+      return;
+    }
+
     if (currentStrokeRef.current && user) {
       socket.emit("draw", {
         roomId,
@@ -110,11 +154,12 @@ const useCanvas = ({ user, roomId }: UseCanvasProps) => {
     if (!user) return;
     pushUndoStack();
     setMyStrokes((prev) =>
-      prev.filter((stroke) => {
-        return !stroke.points.some(
-          (p) => Math.abs(p.x - x) < 10 && Math.abs(p.y - y) < 10
-        );
-      })
+      prev.filter(
+        (stroke) =>
+          !stroke.points.some(
+            (p) => Math.abs(p.x - x) < 10 && Math.abs(p.y - y) < 10
+          )
+      )
     );
     socket.emit("erase", { roomId, userId: user.userId, x, y });
   };
@@ -150,12 +195,10 @@ const useCanvas = ({ user, roomId }: UseCanvasProps) => {
 
     ctx.clearRect(0, 0, canvas.width, canvas.height);
 
-    // ✅ 이미지 먼저 그리기 (배경처럼 보이게 하려면 선보다 먼저)
-    if (imageObj.img) {
-      ctx.drawImage(imageObj.img, imageObj.x, imageObj.y, 150, 150);
-    }
+    imageObjs.forEach((img) => {
+      ctx.drawImage(img.img, img.x, img.y, 150, 150);
+    });
 
-    // ✅ 선 그리기
     [...otherStrokes, ...myStrokes].forEach((stroke) => {
       ctx.beginPath();
       stroke.points.forEach((point, i) => {
@@ -169,7 +212,7 @@ const useCanvas = ({ user, roomId }: UseCanvasProps) => {
 
   useEffect(() => {
     redrawCanvas();
-  }, [myStrokes, otherStrokes]);
+  }, [myStrokes, otherStrokes, imageObjs]);
 
   return {
     canvasRef,
@@ -186,8 +229,8 @@ const useCanvas = ({ user, roomId }: UseCanvasProps) => {
     clearCanvas,
     undo,
     redrawCanvas,
-    imageObj,
-    setImageObj,
+    imageObjs,
+    setImageObjs,
   };
 };
 

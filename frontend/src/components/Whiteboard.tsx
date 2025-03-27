@@ -34,8 +34,8 @@ const Whiteboard = ({ roomName }: { roomName: string }) => {
     clearCanvas,
     undo,
     redrawCanvas,
-    imageObj,
-    setImageObj,
+    imageObjs,
+    setImageObjs,
   } = useCanvas({ user, roomId });
 
   // 배경 (업로드, 사이즈, URL)
@@ -45,7 +45,7 @@ const Whiteboard = ({ roomName }: { roomName: string }) => {
     handleFileUpload,
     clearBackground,
     fileName,
-  } = useBackground(roomId, redrawCanvas, setImageObj);
+  } = useBackground(roomId, redrawCanvas, setImageObjs);
 
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {

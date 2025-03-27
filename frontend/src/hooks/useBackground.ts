@@ -2,16 +2,18 @@ import { useEffect, useState } from "react";
 import { ref, uploadBytes, getDownloadURL } from "firebase/storage";
 import { storage } from "../utils/firebase";
 type ImageObjType = {
-  img: HTMLImageElement | null;
+  img: HTMLImageElement;
   x: number;
   y: number;
   isDragging: boolean;
+  id: string;
 };
+
 const SERVER_URL = import.meta.env.VITE_SERVER_URL;
 const useBackground = (
   roomId: string | undefined,
   redrawCanvas: () => void,
-  setImageObj: React.Dispatch<React.SetStateAction<ImageObjType>>
+  setImageObjs: React.Dispatch<React.SetStateAction<ImageObjType[]>>
 ) => {
   const [backgroundUrl, setBackgroundUrl] = useState<string | null>(null);
   const [pdfSize, setPdfSize] = useState({ width: 1000, height: 1000 });
@@ -43,13 +45,16 @@ const useBackground = (
       const img = new Image();
       img.src = URL.createObjectURL(file);
       img.onload = () => {
-        setImageObj({
+        const newImage = {
           img,
           x: 100,
           y: 100,
           isDragging: false,
-        });
-        redrawCanvas(); // 캔버스 다시 그림
+          id: crypto.randomUUID(), // 브라우저 내장 고유 ID 생성기
+        };
+
+        setImageObjs((prev) => [...prev, newImage]);
+        redrawCanvas();
       };
       return;
     }
