@@ -57,6 +57,37 @@ router.put("/:roomId/background", verifyToken, async (req, res) => {
     res.status(500).json({ error: "Failed to update background" });
   }
 });
+// canvasImage 저장용
+router.post("/:roomId/canvasImage", verifyToken, async (req, res) => {
+  const { roomId } = req.params;
+  const { id, url, x, y } = req.body;
+
+  try {
+    const room = await Room.findByIdAndUpdate(
+      roomId,
+      {
+        $push: {
+          canvasImages: {
+            id,
+            url,
+            x,
+            y,
+          },
+        },
+      },
+      { new: true }
+    );
+
+    if (!room) {
+      return res.status(404).json({ message: "Room not found" });
+    }
+
+    res.json({ success: true, image: { id, url, x, y } });
+  } catch (err) {
+    console.error("이미지 저장 실패:", err);
+    res.status(500).json({ error: "Failed to save image" });
+  }
+});
 // 특정 방 정보 조회
 router.get("/:roomId", verifyToken, async (req, res) => {
   try {

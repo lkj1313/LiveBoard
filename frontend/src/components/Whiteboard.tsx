@@ -60,6 +60,7 @@ const Whiteboard = ({ roomName }: { roomName: string }) => {
     roomId,
     setMyStrokes,
     setOtherStrokes,
+    setImageObjs,
   });
 
   const userString =
@@ -88,7 +89,7 @@ const Whiteboard = ({ roomName }: { roomName: string }) => {
         />
 
         {/* 캔버스  + 배경 */}
-        <div className="relative w-full h-screen">
+        <div className="relative w-[1300px] h-[1000px]">
           {backgroundUrl?.includes(".pdf") && (
             <PDFRenderer
               url={backgroundUrl}

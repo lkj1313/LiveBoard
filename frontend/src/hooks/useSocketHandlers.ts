@@ -3,17 +3,25 @@ import { socket, connectSocket } from "../utils/socket";
 import useAuthStore from "../store/authStore";
 import toast from "react-hot-toast";
 import Stroke from "../type/Stroke";
-
+type ImageObjType = {
+  img: HTMLImageElement;
+  x: number;
+  y: number;
+  isDragging: boolean;
+  id: string;
+};
 interface UseSocketHandlersProps {
   roomId: string;
   setMyStrokes: React.Dispatch<React.SetStateAction<Stroke[]>>;
   setOtherStrokes: React.Dispatch<React.SetStateAction<Stroke[]>>;
+  setImageObjs: React.Dispatch<React.SetStateAction<ImageObjType[]>>;
 }
 
 const useSocketHandlers = ({
   roomId,
   setMyStrokes,
   setOtherStrokes,
+  setImageObjs,
 }: UseSocketHandlersProps) => {
   const [userList, setUserList] = useState<string[]>();
   const user = useAuthStore((state) => state.user);
@@ -37,6 +45,21 @@ const useSocketHandlers = ({
       setMyStrokes(my);
       setOtherStrokes(others);
     });
+    socket.on(
+      "loadCanvasImages",
+      (canvasImages: { id: string; url: string; x: number; y: number }[]) => {
+        canvasImages.forEach(({ id, url, x, y }) => {
+          const img = new Image();
+          img.src = url;
+          img.onload = () => {
+            setImageObjs((prev) => [
+              ...prev,
+              { id, img, x, y, isDragging: false },
+            ]);
+          };
+        });
+      }
+    );
 
     socket.on("draw", (stroke: Stroke) => {
       if (stroke.userId !== user.userId) {
@@ -73,6 +96,27 @@ const useSocketHandlers = ({
     socket.on("userLeave", (nickname: string) => {
       toast(`${nickname}님이 퇴장하셨습니다.`, { icon: "👋" });
     });
+    socket.on("newImage", ({ id, url, x, y }) => {
+      const img = new Image();
+      img.src = url;
+
+      img.onload = () => {
+        setOtherStrokes((prev) => {
+          return prev;
+        });
+
+        setImageObjs?.((prev) => [
+          ...prev,
+          {
+            id,
+            x,
+            y,
+            isDragging: false,
+            img,
+          },
+        ]);
+      };
+    });
 
     return () => {
       socket.off("connect");
@@ -83,6 +127,7 @@ const useSocketHandlers = ({
       socket.off("loadDrawings");
       socket.off("userJoin");
       socket.off("userLeave");
+      socket.off("newImage");
       socket.disconnect();
     };
   }, [roomId, setMyStrokes, setOtherStrokes, user]);

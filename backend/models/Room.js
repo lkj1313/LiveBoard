@@ -8,6 +8,18 @@ const RoomSchema = new mongoose.Schema({
       "https://firebasestorage.googleapis.com/v0/b/liveboard-24cba.firebasestorage.app/o/rooms%2Fwhiteboard.webp-1742811168081?alt=media&token=4f386f73-2bf8-421a-9df2-1fb9ebf92b80",
   }, // 기본 이미지 URL
   backgroundUrl: { type: String }, // PDF/이미지 배경 URL
+  canvasImages: [
+    {
+      type: {
+        id: { type: String, required: true },
+        url: { type: String, required: true },
+        x: { type: Number, required: true },
+        y: { type: Number, required: true },
+      },
+      _id: false,
+    },
+  ],
+
   owner: { type: mongoose.Schema.Types.ObjectId, ref: "User", required: true }, // 방장 (User 모델 참조)
   createdAt: { type: Date, default: Date.now }, // 방 생성 날짜
 });

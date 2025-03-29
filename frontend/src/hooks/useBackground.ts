@@ -1,6 +1,8 @@
 import { useEffect, useState } from "react";
 import { ref, uploadBytes, getDownloadURL } from "firebase/storage";
 import { storage } from "../utils/firebase";
+import { socket } from "../utils/socket";
+
 type ImageObjType = {
   img: HTMLImageElement;
   x: number;
@@ -42,19 +44,61 @@ const useBackground = (
 
     // 이미지 파일일 경우 → 드래그 가능한 이미지 객체로 캔버스에 추가
     if (file.type.startsWith("image/")) {
+      // ✅ 1. Firebase에 이미지 업로드
+      const storageRef = ref(storage, `uploads/${file.name}-${Date.now()}`);
+      await uploadBytes(storageRef, file);
+      const url = await getDownloadURL(storageRef); // 🔗 Firebase 공개 URL
+
+      // ✅ 2. 이미지 객체 생성 (렌더링용 HTMLImageElement)
       const img = new Image();
-      img.src = URL.createObjectURL(file);
-      img.onload = () => {
+      img.src = url; // ❗ 로컬 URL ❌ → Firebase URL ✅
+
+      img.onload = async () => {
         const newImage = {
+          id: crypto.randomUUID(),
           img,
           x: 100,
           y: 100,
           isDragging: false,
-          id: crypto.randomUUID(), // 브라우저 내장 고유 ID 생성기
         };
 
+        // ✅ 3. 캔버스에 렌더링
         setImageObjs((prev) => [...prev, newImage]);
         redrawCanvas();
+
+        try {
+          // ✅ 4. 서버(MongoDB)에 이미지 메타데이터 저장
+          const res = await fetch(`${SERVER_URL}/room/${roomId}/canvasImage`, {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            credentials: "include",
+            body: JSON.stringify({
+              id: newImage.id,
+              url,
+              x: newImage.x,
+              y: newImage.y,
+            }),
+          });
+          if (res.ok) {
+            console.log("성공");
+          }
+          if (!res.ok) {
+            const errMsg = await res.text();
+            throw new Error(`서버 응답 오류: ${errMsg}`);
+          }
+
+          // ✅ 5. 실시간 공유
+          socket.emit("addImage", {
+            roomId,
+            id: newImage.id,
+            url,
+            x: newImage.x,
+            y: newImage.y,
+          });
+        } catch (err) {
+          console.error("❌ 이미지 저장 에러:", err);
+          alert("이미지 저장 중 오류가 발생했습니다. 다시 시도해주세요.");
+        }
       };
       return;
     }

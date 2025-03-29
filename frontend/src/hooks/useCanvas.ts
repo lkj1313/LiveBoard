@@ -32,7 +32,7 @@ const useCanvas = ({ user, roomId }: UseCanvasProps) => {
     x: 0,
     y: 0,
   });
-
+  console.log(imageObjs);
   const pushUndoStack = () => {
     if (!user) return;
     setUndoStack((prev) => [...prev, JSON.parse(JSON.stringify(myStrokes))]);

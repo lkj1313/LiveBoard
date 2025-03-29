@@ -1,4 +1,5 @@
 import Drawing from "../models/Drawing.js";
+import Room from "../models/Room.js";
 
 // ✅ 닉네임 목록 추적용 (roomId → [{ socketId, nickname }])
 const roomUsers = new Map();
@@ -25,11 +26,18 @@ export const canvasSocketHandler = (io) => {
         roomUsers.get(roomId).map((u) => u.nickname)
       );
 
-      // 기존 그림 불러오기
+      // 기존 선 불러오기
       try {
-        const existing = await Drawing.findOne({ roomId });
-        if (existing) {
-          socket.emit("loadDrawings", existing.strokes);
+        // 🔹 1. strokes (from Drawing)
+        const drawing = await Drawing.findOne({ roomId });
+        if (drawing) {
+          socket.emit("loadDrawings", drawing.strokes);
+        }
+
+        // 🔹 2. canvasImages (from Room)
+        const room = await Room.findById(roomId);
+        if (room?.canvasImages?.length > 0) {
+          socket.emit("loadCanvasImages", room.canvasImages);
         }
       } catch (error) {
         console.error("❌ 그림 불러오기 실패:", error);
@@ -111,7 +119,11 @@ export const canvasSocketHandler = (io) => {
         console.error("replaceStrokes error:", error);
       }
     });
-
+    // ✅ 이미지 삽입 (실시간 공유)
+    socket.on("addImage", ({ roomId, id, url, x, y }) => {
+      socket.to(roomId).emit("newImage", { id, url, x, y });
+      console.log("삽입완료");
+    });
     // ✅ 연결 종료 시 유저 목록에서 제거
     socket.on("disconnect", () => {
       for (const [roomId, users] of roomUsers.entries()) {
@@ -126,7 +138,7 @@ export const canvasSocketHandler = (io) => {
 
         // ✅ 퇴장 알림 보내기
         if (leavingUser) {
-          io.to(roomId).emit("userLeave", leavingUser.nickname); // 🔥 이게 핵심!
+          io.to(roomId).emit("userLeave", leavingUser.nickname);
           io.to(roomId).emit(
             "userList",
             updated.map((u) => u.nickname)
