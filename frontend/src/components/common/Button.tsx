@@ -1,7 +1,7 @@
 import React from "react";
 
 type ButtonProps = React.ButtonHTMLAttributes<HTMLButtonElement> & {
-  variant?: "primary" | "secondary" | "danger" | "success";
+  variant?: "primary" | "secondary" | "danger" | "success" | "ghost";
 };
 
 const Button = ({
@@ -19,6 +19,8 @@ const Button = ({
     secondary: "bg-gray-200 text-gray-700 hover:bg-gray-300",
     danger: "bg-red-500 text-white hover:bg-red-600",
     success: "bg-green-500 text-white hover:bg-green-600",
+    ghost:
+      "bg-transparent text-gray-700 hover:bg-gray-200 border border-gray-300",
   };
 
   return (

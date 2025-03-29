@@ -8,6 +8,7 @@ interface DrawingCanvasProps {
   handleHover: (e: React.MouseEvent<HTMLCanvasElement>) => void;
   stopDrawing: () => void;
   redrawCanvas: () => void;
+  isImageDragMode: boolean;
 }
 
 const DrawingCanvas: React.FC<DrawingCanvasProps> = ({
@@ -18,12 +19,17 @@ const DrawingCanvas: React.FC<DrawingCanvasProps> = ({
   handleHover,
   stopDrawing,
   redrawCanvas,
+  isImageDragMode,
 }) => {
   return (
     <canvas
       ref={canvasRef}
-      className={`absolute top-0 left-0 border z-10  ${
-        isErasing ? "cursor-cell" : "cursor-crosshair"
+      className={`absolute top-0 left-0 border z-10 ${
+        isErasing
+          ? "cursor-cell"
+          : isImageDragMode
+          ? "cursor-move"
+          : "cursor-crosshair"
       }`}
       width={1300}
       height={1000}

@@ -34,8 +34,10 @@ const Whiteboard = ({ roomName }: { roomName: string }) => {
     clearCanvas,
     undo,
     redrawCanvas,
-    imageObjs,
+
     setImageObjs,
+    isImageDragMode,
+    setIsImageDragMode,
   } = useCanvas({ user, roomId });
 
   // 배경 (업로드, 사이즈, URL)
@@ -80,8 +82,19 @@ const Whiteboard = ({ roomName }: { roomName: string }) => {
       <div className="flex flex-col items-center h-full w-full">
         <Toolbar
           isErasing={isErasing}
-          onToggleDraw={() => setIsErasing(false)}
-          onToggleErase={() => setIsErasing(true)}
+          isImageDragMode={isImageDragMode}
+          onToggleDraw={() => {
+            setIsErasing(false);
+            setIsImageDragMode(false);
+          }}
+          onToggleErase={() => {
+            setIsErasing(true);
+            setIsImageDragMode(false);
+          }}
+          onToggleImageDragMode={() => {
+            setIsErasing(false);
+            setIsImageDragMode(true);
+          }}
           onClear={clearCanvas}
           onUpload={handleFileUpload}
           onClearBackground={clearBackground}
@@ -103,7 +116,10 @@ const Whiteboard = ({ roomName }: { roomName: string }) => {
           <DrawingCanvas
             canvasRef={canvasRef}
             isErasing={isErasing}
-            handleMouseDown={(e) => handleMouseDown(e, isErasing)}
+            isImageDragMode={isImageDragMode}
+            handleMouseDown={(e) =>
+              handleMouseDown(e, isErasing, isImageDragMode)
+            }
             draw={draw}
             handleHover={handleHover}
             stopDrawing={stopDrawing}

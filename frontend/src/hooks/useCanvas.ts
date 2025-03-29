@@ -32,6 +32,7 @@ const useCanvas = ({ user, roomId }: UseCanvasProps) => {
     x: 0,
     y: 0,
   });
+  const [isImageDragMode, setIsImageDragMode] = useState(false); // 이미지드래그모드
   console.log(imageObjs);
   const pushUndoStack = () => {
     if (!user) return;
@@ -57,28 +58,33 @@ const useCanvas = ({ user, roomId }: UseCanvasProps) => {
 
   const handleMouseDown = (
     e: React.MouseEvent<HTMLCanvasElement>,
-    isErasing: boolean
+    isErasing: boolean,
+    isImageDragMode: boolean
   ) => {
     if (!user) return;
     const { offsetX, offsetY } = e.nativeEvent;
 
-    for (let i = imageObjs.length - 1; i >= 0; i--) {
-      const img = imageObjs[i];
-      if (
-        offsetX >= img.x &&
-        offsetX <= img.x + 150 &&
-        offsetY >= img.y &&
-        offsetY <= img.y + 150
-      ) {
-        setDraggingImageId(img.id);
-        setImageObjs((prev) =>
-          prev.map((el) =>
-            el.id === img.id ? { ...el, isDragging: true } : el
-          )
-        );
-        setDragOffset({ x: offsetX - img.x, y: offsetY - img.y });
-        return;
+    if (isImageDragMode) {
+      // 이미지 클릭 시 드래그 시작
+      for (let i = imageObjs.length - 1; i >= 0; i--) {
+        const img = imageObjs[i];
+        if (
+          offsetX >= img.x &&
+          offsetX <= img.x + 150 &&
+          offsetY >= img.y &&
+          offsetY <= img.y + 150
+        ) {
+          setDraggingImageId(img.id);
+          setImageObjs((prev) =>
+            prev.map((el) =>
+              el.id === img.id ? { ...el, isDragging: true } : el
+            )
+          );
+          setDragOffset({ x: offsetX - img.x, y: offsetY - img.y });
+          return;
+        }
       }
+      return; // ❗손 모드일 때는 그리기 안 함
     }
 
     if (isErasing) {
@@ -231,6 +237,8 @@ const useCanvas = ({ user, roomId }: UseCanvasProps) => {
     redrawCanvas,
     imageObjs,
     setImageObjs,
+    isImageDragMode,
+    setIsImageDragMode,
   };
 };
 
