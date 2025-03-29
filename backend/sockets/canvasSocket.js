@@ -57,7 +57,10 @@ export const canvasSocketHandler = (io) => {
         console.error("❌ 그림 저장 실패:", error);
       }
     });
-
+    // 해당 방의 다른 유저들에게 이미지 위치 이동 알림
+    socket.on("moveImage", ({ roomId, imageId, x, y }) => {
+      socket.to(roomId).emit("moveImage", { imageId, x, y });
+    });
     // ✅ 지우기
     socket.on("erase", async ({ roomId, userId, x, y }) => {
       try {

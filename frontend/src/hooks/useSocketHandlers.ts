@@ -117,7 +117,11 @@ const useSocketHandlers = ({
         ]);
       };
     });
-
+    socket.on("moveImage", ({ imageId, x, y }) => {
+      setImageObjs((prev) =>
+        prev.map((img) => (img.id === imageId ? { ...img, x, y } : img))
+      );
+    });
     return () => {
       socket.off("connect");
       socket.off("join");

@@ -88,6 +88,31 @@ router.post("/:roomId/canvasImage", verifyToken, async (req, res) => {
     res.status(500).json({ error: "Failed to save image" });
   }
 });
+
+// 이미지 좌표 바꾸기
+router.put("/:roomId/image/:imageId", verifyToken, async (req, res) => {
+  const { roomId, imageId } = req.params;
+  const { x, y } = req.body;
+
+  try {
+    const room = await Room.findById(roomId);
+    if (!room) return res.status(404).json({ message: "Room not found" });
+
+    // 이미지 찾고 위치 업데이트
+    const image = room.canvasImages.find((img) => img.id === imageId);
+    if (!image) return res.status(404).json({ message: "Image not found" });
+
+    image.x = x;
+    image.y = y;
+
+    await room.save();
+
+    res.status(200).json({ message: "Image position updated", image });
+  } catch (error) {
+    console.error("❌ 이미지 위치 업데이트 실패:", error);
+    res.status(500).json({ error: "Server error" });
+  }
+});
 // 특정 방 정보 조회
 router.get("/:roomId", verifyToken, async (req, res) => {
   try {

@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState } from "react";
 import { socket } from "../utils/socket";
 import Stroke from "../type/Stroke";
-
+const SERVER_URL = import.meta.env.VITE_SERVER_URL;
 interface UseCanvasProps {
   user: { userId: string; nickname: string } | null;
   roomId: string;
@@ -136,7 +136,31 @@ const useCanvas = ({ user, roomId }: UseCanvasProps) => {
   const stopDrawing = () => {
     setIsDrawing(false);
 
+    // 🖼 이미지 드래그 중일 경우
     if (draggingImageId) {
+      const draggedImage = imageObjs.find((img) => img.id === draggingImageId);
+
+      if (draggedImage) {
+        // ✅ 1. 서버에 위치 저장
+        fetch(`${SERVER_URL}/room/${roomId}/image/${draggedImage.id}`, {
+          method: "PUT",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          credentials: "include",
+          body: JSON.stringify({ x: draggedImage.x, y: draggedImage.y }),
+        }).catch((err) => console.error("❌ 이미지 위치 저장 실패", err));
+
+        // ✅ 2. 다른 유저에게 위치 이동 알림
+        socket.emit("moveImage", {
+          roomId,
+          imageId: draggedImage.id,
+          x: draggedImage.x,
+          y: draggedImage.y,
+        });
+      }
+
+      // ✅ 3. 드래그 상태 초기화
       setImageObjs((prev) =>
         prev.map((img) =>
           img.id === draggingImageId ? { ...img, isDragging: false } : img
@@ -147,6 +171,7 @@ const useCanvas = ({ user, roomId }: UseCanvasProps) => {
       return;
     }
 
+    // ✏️ 드로잉 중일 경우
     if (currentStrokeRef.current && user) {
       socket.emit("draw", {
         roomId,
