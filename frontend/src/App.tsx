@@ -6,7 +6,7 @@ const SERVER_URL = import.meta.env.VITE_SERVER_URL;
 function App() {
   const { setUser, logout } = useAuthStore();
   const [loading, setLoading] = useState(true);
-
+  console.log(import.meta.env.VITE_SERVER_URL);
   useEffect(() => {
     const checkAuth = async () => {
       try {
