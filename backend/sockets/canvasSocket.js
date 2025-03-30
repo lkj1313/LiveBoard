@@ -127,6 +127,10 @@ export const canvasSocketHandler = (io) => {
       socket.to(roomId).emit("newImage", { id, url, x, y });
       console.log("삽입완료");
     });
+    // ✅ 이미지 삭제
+    socket.on("deleteImage", ({ roomId, imageId }) => {
+      socket.to(roomId).emit("deleteImage", { imageId });
+    });
     // ✅ 연결 종료 시 유저 목록에서 제거
     socket.on("disconnect", () => {
       for (const [roomId, users] of roomUsers.entries()) {

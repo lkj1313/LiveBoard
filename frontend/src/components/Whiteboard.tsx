@@ -20,24 +20,40 @@ const Whiteboard = ({ roomName }: { roomName: string }) => {
 
   // ✏️ 그린기 기능 (캔버스 관련 로직 + 상태)
   const {
+    // 📌 캔버스 참조
     canvasRef,
+
+    // 🖊️ 드로잉 관련
     myStrokes,
-    otherStrokes,
     setMyStrokes,
+    otherStrokes,
     setOtherStrokes,
-    hoveredNick,
-    hoverPos,
     handleMouseDown,
     draw,
     stopDrawing,
-    handleHover,
-    clearCanvas,
     undo,
+    clearCanvas,
     redrawCanvas,
-    setSelectedImageId,
+
+    // 👆 마우스 오버 정보
+    hoveredNick,
+    hoverPos,
+    handleHover,
+
+    // 🖼 이미지 관련
     setImageObjs,
+    setSelectedImageId,
     isImageDragMode,
     setIsImageDragMode,
+
+    // 🧭 우클릭 컨텍스트 메뉴
+    handleContextMenu,
+    rightClickedImageId,
+    contextMenuPos, // ✅ 추가
+    setRightClickedImageId, // ✅ 추가
+    setContextMenuPos, // ✅ 추가
+    handleDeleteImage,
+    // 🛠 도구 상태
     setIsDrawingMode,
   } = useCanvas({ user, roomId });
 
@@ -50,6 +66,13 @@ const Whiteboard = ({ roomName }: { roomName: string }) => {
     fileName,
   } = useBackground(roomId, redrawCanvas, setImageObjs);
 
+  // 소켓 연결 & 실시간 동기화
+  const { userList } = useSocketHandlers({
+    roomId,
+    setMyStrokes,
+    setOtherStrokes,
+    setImageObjs,
+  });
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
       if (e.ctrlKey && e.key === "z") undo();
@@ -58,13 +81,18 @@ const Whiteboard = ({ roomName }: { roomName: string }) => {
     return () => window.removeEventListener("keydown", handleKeyDown);
   }, [undo]);
 
-  // 소켓 연결 & 실시간 동기화
-  const { userList } = useSocketHandlers({
-    roomId,
-    setMyStrokes,
-    setOtherStrokes,
-    setImageObjs,
-  });
+  useEffect(() => {
+    const handleClickOutside = () => {
+      setRightClickedImageId(null);
+      setContextMenuPos(null);
+    };
+
+    window.addEventListener("click", handleClickOutside);
+
+    return () => {
+      window.removeEventListener("click", handleClickOutside);
+    };
+  }, []);
 
   const userString =
     userList && userList.length > 0
@@ -118,18 +146,29 @@ const Whiteboard = ({ roomName }: { roomName: string }) => {
               otherStrokes={otherStrokes}
             />
           )}
-
           <DrawingCanvas
+            // 📌 캔버스 참조
             canvasRef={canvasRef}
+            // 🧽 도구 상태
             isErasing={isErasing}
             isImageDragMode={isImageDragMode}
+            // 🖊️ 드로잉 동작 관련
             handleMouseDown={(e) =>
               handleMouseDown(e, isErasing, isImageDragMode)
             }
             draw={draw}
-            handleHover={handleHover}
             stopDrawing={stopDrawing}
             redrawCanvas={redrawCanvas}
+            // 👆 마우스 호버
+            handleHover={handleHover}
+            // 🧭 우클릭 메뉴
+            handleContextMenu={handleContextMenu}
+            rightClickedImageId={rightClickedImageId}
+            contextMenuPos={contextMenuPos}
+            setImageObjs={setImageObjs}
+            setRightClickedImageId={setRightClickedImageId}
+            setContextMenuPos={setContextMenuPos}
+            handleDeleteImage={handleDeleteImage}
           />
 
           {/* Hover 닉네임 */}

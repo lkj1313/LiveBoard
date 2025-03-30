@@ -123,4 +123,23 @@ router.get("/:roomId", verifyToken, async (req, res) => {
     res.status(500).json({ error: "Failed to load room" });
   }
 });
+
+// 이미지 삭제 API
+router.delete("/:roomId/image/:imageId", verifyToken, async (req, res) => {
+  const { roomId, imageId } = req.params;
+
+  try {
+    const room = await Room.findById(roomId);
+    if (!room) return res.status(404).json({ message: "Room not found" });
+
+    room.canvasImages = room.canvasImages.filter((img) => img.id !== imageId);
+    await room.save();
+
+    res.status(200).json({ message: "Image deleted" });
+  } catch (error) {
+    console.error("❌ 이미지 삭제 실패:", error);
+    res.status(500).json({ error: "Server error" });
+  }
+});
+
 export default router;

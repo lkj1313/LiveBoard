@@ -122,6 +122,10 @@ const useSocketHandlers = ({
         prev.map((img) => (img.id === imageId ? { ...img, x, y } : img))
       );
     });
+    socket.on("deleteImage", ({ imageId }) => {
+      setImageObjs((prev) => prev.filter((img) => img.id !== imageId));
+    });
+
     return () => {
       socket.off("connect");
       socket.off("join");
@@ -132,6 +136,7 @@ const useSocketHandlers = ({
       socket.off("userJoin");
       socket.off("userLeave");
       socket.off("newImage");
+      socket.off("deleteImage");
       socket.disconnect();
     };
   }, [roomId, setMyStrokes, setOtherStrokes, user]);
