@@ -1,4 +1,5 @@
 import React, { useEffect } from "react";
+import Button from "./common/Button";
 type ImageObjType = {
   img: HTMLImageElement;
   x: number;
@@ -66,15 +67,16 @@ const DrawingCanvas: React.FC<DrawingCanvasProps> = ({
 
       {contextMenuPos && rightClickedImageId && (
         <div
-          className="absolute bg-white border rounded shadow p-2 z-50"
+          className="absolute z-50    shadow-xl   flex flex-col gap-1"
           style={{ top: contextMenuPos.y, left: contextMenuPos.x }}
         >
-          <button
+          <Button
             onClick={handleDeleteImage}
-            className="text-red-500 hover:underline"
+            variant="danger"
+            className="w-full text-sm px-3 py-1"
           >
-            이미지 삭제
-          </button>
+            🗑 이미지 삭제
+          </Button>
         </div>
       )}
     </>
