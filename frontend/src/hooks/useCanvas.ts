@@ -33,7 +33,9 @@ const useCanvas = ({ user, roomId }: UseCanvasProps) => {
     y: 0,
   });
   const [isImageDragMode, setIsImageDragMode] = useState(false); // 이미지드래그모드
-  console.log(imageObjs);
+  const [isDrawingMode, setIsDrawingMode] = useState(true); // 그리기모드인가?
+  const [selectedImageId, setSelectedImageId] = useState<string | null>(null); //선택된 이미지id
+  console.log(isDrawingMode);
   const pushUndoStack = () => {
     if (!user) return;
     setUndoStack((prev) => [...prev, JSON.parse(JSON.stringify(myStrokes))]);
@@ -62,36 +64,70 @@ const useCanvas = ({ user, roomId }: UseCanvasProps) => {
     isImageDragMode: boolean
   ) => {
     if (!user) return;
+
     const { offsetX, offsetY } = e.nativeEvent;
 
+    // 공통 이미지 클릭 판별 함수
+    const getClickedImage = () => {
+      return imageObjs
+        .slice() // 복사해서
+        .reverse() // z-index 상 위쪽 이미지부터 검사
+        .find(
+          (img) =>
+            offsetX >= img.x &&
+            offsetX <= img.x + 150 &&
+            offsetY >= img.y &&
+            offsetY <= img.y + 150
+        );
+    };
+
+    // === 1. 이미지 드래그 모드 ===
     if (isImageDragMode) {
-      // 이미지 클릭 시 드래그 시작
-      for (let i = imageObjs.length - 1; i >= 0; i--) {
-        const img = imageObjs[i];
-        if (
-          offsetX >= img.x &&
-          offsetX <= img.x + 150 &&
-          offsetY >= img.y &&
-          offsetY <= img.y + 150
-        ) {
-          setDraggingImageId(img.id);
-          setImageObjs((prev) =>
-            prev.map((el) =>
-              el.id === img.id ? { ...el, isDragging: true } : el
-            )
-          );
-          setDragOffset({ x: offsetX - img.x, y: offsetY - img.y });
-          return;
-        }
+      const clickedImage = getClickedImage();
+
+      if (clickedImage) {
+        setDraggingImageId(clickedImage.id);
+        setImageObjs((prev) =>
+          prev.map((el) =>
+            el.id === clickedImage.id ? { ...el, isDragging: true } : el
+          )
+        );
+        setDragOffset({
+          x: offsetX - clickedImage.x,
+          y: offsetY - clickedImage.y,
+        });
+        setSelectedImageId(clickedImage.id);
+      } else {
+        setSelectedImageId(null); // 이미지 외부 클릭 시 선택 해제
       }
-      return; // ❗손 모드일 때는 그리기 안 함
+
+      return; // ✅ 드래그 모드일 땐 여기서 종료
     }
 
+    // === 2. 지우개 모드 ===
     if (isErasing) {
       erase(offsetX, offsetY);
-      return;
+      return; // ✅ 지우개는 여기서 끝
     }
 
+    // === 3. 손 모드일 때만 이미지 선택/해제 처리 ===
+
+    if (!isImageDragMode && !isErasing && !isDrawingMode) {
+      const clickedImage = getClickedImage();
+      console.log("드로잉", isDrawingMode);
+
+      if (clickedImage) {
+        if (selectedImageId !== clickedImage.id) {
+          setSelectedImageId(clickedImage.id);
+        }
+      } else {
+        if (selectedImageId !== null) {
+          setSelectedImageId(null); // ⭐ 상태 변경 발생하도록 강제
+        }
+      }
+    }
+
+    // === 4. 드로잉 모드 ===
     pushUndoStack();
 
     const newStroke: Stroke = {
@@ -228,6 +264,11 @@ const useCanvas = ({ user, roomId }: UseCanvasProps) => {
 
     imageObjs.forEach((img) => {
       ctx.drawImage(img.img, img.x, img.y, 150, 150);
+      if (img.id === selectedImageId) {
+        ctx.strokeStyle = "#3B82F6"; // Tailwind의 blue-500
+        ctx.lineWidth = 2;
+        ctx.strokeRect(img.x - 2, img.y - 2, 154, 154); // 약간 크게 테두리
+      }
     });
 
     [...otherStrokes, ...myStrokes].forEach((stroke) => {
@@ -243,7 +284,7 @@ const useCanvas = ({ user, roomId }: UseCanvasProps) => {
 
   useEffect(() => {
     redrawCanvas();
-  }, [myStrokes, otherStrokes, imageObjs]);
+  }, [myStrokes, otherStrokes, imageObjs, isImageDragMode, selectedImageId]);
 
   return {
     canvasRef,
@@ -264,6 +305,11 @@ const useCanvas = ({ user, roomId }: UseCanvasProps) => {
     setImageObjs,
     isImageDragMode,
     setIsImageDragMode,
+    setIsDrawing,
+    isDrawing,
+    isDrawingMode,
+    setIsDrawingMode,
+    setSelectedImageId,
   };
 };
 

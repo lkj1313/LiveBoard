@@ -34,10 +34,11 @@ const Whiteboard = ({ roomName }: { roomName: string }) => {
     clearCanvas,
     undo,
     redrawCanvas,
-
+    setSelectedImageId,
     setImageObjs,
     isImageDragMode,
     setIsImageDragMode,
+    setIsDrawingMode,
   } = useCanvas({ user, roomId });
 
   // 배경 (업로드, 사이즈, URL)
@@ -86,14 +87,19 @@ const Whiteboard = ({ roomName }: { roomName: string }) => {
           onToggleDraw={() => {
             setIsErasing(false);
             setIsImageDragMode(false);
+            setIsDrawingMode(true);
+            setSelectedImageId(null);
           }}
           onToggleErase={() => {
             setIsErasing(true);
             setIsImageDragMode(false);
+            setIsDrawingMode(false);
+            setSelectedImageId(null);
           }}
           onToggleImageDragMode={() => {
             setIsErasing(false);
             setIsImageDragMode(true);
+            setIsDrawingMode(false);
           }}
           onClear={clearCanvas}
           onUpload={handleFileUpload}
