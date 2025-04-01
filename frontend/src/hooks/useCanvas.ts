@@ -46,10 +46,6 @@ const useCanvas = ({
   setDraggingImageId,
   dragOffset,
   setDragOffset,
-  rightClickedImageId,
-  setRightClickedImageId,
-  contextMenuPos,
-  setContextMenuPos,
 }: UseCanvasProps) => {
   const canvasRef = useRef<HTMLCanvasElement | null>(null);
   const [myStrokes, setMyStrokes] = useState<Stroke[]>([]);

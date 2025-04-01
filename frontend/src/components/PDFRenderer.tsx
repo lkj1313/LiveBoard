@@ -11,11 +11,11 @@ pdfjs.GlobalWorkerOptions.workerSrc = new URL(
 interface PDFViewerProps {
   url: string;
   onSizeChange?: (size: { width: number; height: number }) => void;
-  redrawCanvas: () => void;
+
   myStrokes: Stroke[];
   otherStrokes: Stroke[];
 }
-const PDFViewer = ({ url, onSizeChange, redrawCanvas }: PDFViewerProps) => {
+const PDFViewer = ({ url, onSizeChange }: PDFViewerProps) => {
   const [numPages, setNumPages] = useState<number>();
   const [currentPage, setCurrentPage] = useState(1);
   const [pdfBlob, setPdfBlob] = useState<Blob | null>(null);

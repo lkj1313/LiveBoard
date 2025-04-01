@@ -2,6 +2,7 @@ import { ref, uploadBytes, getDownloadURL } from "firebase/storage";
 import { storage } from "../utils/firebase";
 import { socket } from "../utils/socket";
 import { ImageObjType } from "../type/Image";
+import { useState } from "react";
 
 const SERVER_URL = import.meta.env.VITE_SERVER_URL;
 
@@ -9,15 +10,14 @@ const useCanvasImages = (
   roomId: string | undefined,
   redrawCanvas: () => void,
   imageObjs: ImageObjType[],
-  setImageObjs: React.Dispatch<React.SetStateAction<ImageObjType[]>>,
-  setRightClickedImageId: (id: string | null) => void,
-  setContextMenuPos: (pos: { x: number; y: number } | null) => void
+  setImageObjs: React.Dispatch<React.SetStateAction<ImageObjType[]>>
 ) => {
+  const [isImageUploading, setIsImageUploading] = useState(false);
   // ✅ 이미지 업로드
   const handleImageUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file) return;
-
+    setIsImageUploading(true);
     const storageRef = ref(storage, `uploads/${file.name}-${Date.now()}`);
     await uploadBytes(storageRef, file);
     const url = await getDownloadURL(storageRef);
@@ -65,6 +65,8 @@ const useCanvasImages = (
       } catch (err) {
         console.error("❌ 이미지 저장 에러:", err);
         alert("이미지 저장 중 오류가 발생했습니다. 다시 시도해주세요.");
+      } finally {
+        setIsImageUploading(false); // ✅ 업로드 완료
       }
     };
   };
@@ -128,28 +130,11 @@ const useCanvasImages = (
     }
   };
 
-  const drawImagesToCanvas = (
-    canvas: HTMLCanvasElement,
-    selectedImageId: string | null
-  ) => {
-    const ctx = canvas.getContext("2d");
-    if (!ctx) return;
-
-    imageObjs.forEach((img) => {
-      ctx.drawImage(img.img, img.x, img.y, 150, 150);
-      if (img.id === selectedImageId) {
-        ctx.strokeStyle = "#3B82F6";
-        ctx.lineWidth = 2;
-        ctx.strokeRect(img.x - 2, img.y - 2, 154, 154);
-      }
-    });
-  };
-
   return {
     handleImageUpload,
     handleContextMenu,
     handleDeleteImage,
-    drawImagesToCanvas,
+    isImageUploading,
   };
 };
 

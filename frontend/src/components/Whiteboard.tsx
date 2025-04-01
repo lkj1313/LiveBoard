@@ -85,14 +85,12 @@ const Whiteboard = ({ roomName }: { roomName: string }) => {
     handleImageUpload,
     handleContextMenu,
     handleDeleteImage,
-    drawImagesToCanvas,
+    isImageUploading,
   } = useCanvasImages(
     roomId,
     redrawCanvas, // ✅ () => void
     imageObjs,
-    setImageObjs,
-    setRightClickedImageId,
-    setContextMenuPos
+    setImageObjs
   );
   // 유즈캔 백그라운드
   const {
@@ -116,6 +114,7 @@ const Whiteboard = ({ roomName }: { roomName: string }) => {
       ? `${userList.join(", ")} 님(들)이 ${roomName}방에 입장하셨습니다!`
       : "";
 
+  // ctrl + z 누를시 undo() 실행
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
       if (e.ctrlKey && e.key === "z") undo();
@@ -125,17 +124,19 @@ const Whiteboard = ({ roomName }: { roomName: string }) => {
   }, [undo]);
 
   useEffect(() => {
+    // 캔버스 외부를 클릭했을 때 컨텍스트 메뉴 닫기
     const handleClickOutside = () => {
-      setRightClickedImageId(null);
-      setContextMenuPos(null);
+      setRightClickedImageId(null); // 우클릭된 이미지 ID 초기화
+      setContextMenuPos(null); // 컨텍스트 메뉴 위치 초기화
     };
 
     window.addEventListener("click", handleClickOutside);
 
     return () => {
-      window.removeEventListener("click", handleClickOutside);
+      window.removeEventListener("click", handleClickOutside); // 컴포넌트 언마운트 시 이벤트 제거
     };
   }, []);
+
   return (
     <div className="w-full">
       {/* 입장문구 */}
@@ -175,11 +176,15 @@ const Whiteboard = ({ roomName }: { roomName: string }) => {
 
         {/* 캔버스  + 배경 */}
         <div className="relative w-[1300px] h-[1000px]">
+          {isImageUploading && (
+            <div className="absolute left-1/2 top-4 transform -translate-x-1/2 bg-white px-4 py-2 rounded shadow text-3xl">
+              Img Loading...
+            </div>
+          )}
           {backgroundUrl?.includes(".pdf") && (
             <PDFRenderer
               url={backgroundUrl}
               onSizeChange={setPdfSize}
-              redrawCanvas={redrawCanvas}
               myStrokes={myStrokes}
               otherStrokes={otherStrokes}
             />
