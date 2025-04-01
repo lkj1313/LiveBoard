@@ -1,8 +1,8 @@
 // components/Toolbar.tsx
 import React from "react";
-import FileUploader from "./FileUploader";
 import Button from "./common/Button";
-import { FaRegHandPaper } from "react-icons/fa";
+import PDFUploader from "./uploader/PDFUploader";
+import ImageUploader from "./uploader/ImageUploader";
 
 interface ToolbarProps {
   fileName: string;
@@ -12,7 +12,8 @@ interface ToolbarProps {
   onToggleErase: () => void;
   onToggleImageDragMode: () => void;
   onClear: () => void;
-  onUpload: (e: React.ChangeEvent<HTMLInputElement>) => void;
+  onUploadPdf: (e: React.ChangeEvent<HTMLInputElement>) => void;
+  onUploadImg: (e: React.ChangeEvent<HTMLInputElement>) => void;
   onClearBackground: () => void;
 }
 
@@ -22,7 +23,8 @@ const Toolbar: React.FC<ToolbarProps> = ({
   onToggleErase,
   onToggleImageDragMode,
   onClear,
-  onUpload,
+  onUploadPdf,
+  onUploadImg,
   onClearBackground,
   fileName,
   isImageDragMode,
@@ -64,9 +66,10 @@ const Toolbar: React.FC<ToolbarProps> = ({
       >
         🗑️
       </Button>
+      <ImageUploader onUpload={onUploadImg} />
 
-      <FileUploader
-        onUpload={onUpload}
+      <PDFUploader
+        onUpload={onUploadPdf}
         fileName={fileName}
         onClear={onClearBackground}
       />

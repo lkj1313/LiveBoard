@@ -5,6 +5,26 @@ const SERVER_URL = import.meta.env.VITE_SERVER_URL;
 interface UseCanvasProps {
   user: { userId: string; nickname: string } | null;
   roomId: string;
+
+  imageObjs: ImageObjType[];
+  setImageObjs: React.Dispatch<React.SetStateAction<ImageObjType[]>>;
+
+  selectedImageId: string | null;
+  setSelectedImageId: React.Dispatch<React.SetStateAction<string | null>>;
+
+  draggingImageId: string | null;
+  setDraggingImageId: React.Dispatch<React.SetStateAction<string | null>>;
+
+  dragOffset: { x: number; y: number };
+  setDragOffset: React.Dispatch<React.SetStateAction<{ x: number; y: number }>>;
+
+  rightClickedImageId: string | null;
+  setRightClickedImageId: React.Dispatch<React.SetStateAction<string | null>>;
+
+  contextMenuPos: { x: number; y: number } | null;
+  setContextMenuPos: React.Dispatch<
+    React.SetStateAction<{ x: number; y: number } | null>
+  >;
 }
 
 type ImageObjType = {
@@ -15,7 +35,22 @@ type ImageObjType = {
   id: string;
 };
 
-const useCanvas = ({ user, roomId }: UseCanvasProps) => {
+const useCanvas = ({
+  user,
+  roomId,
+  imageObjs,
+  setImageObjs,
+  selectedImageId,
+  setSelectedImageId,
+  draggingImageId,
+  setDraggingImageId,
+  dragOffset,
+  setDragOffset,
+  rightClickedImageId,
+  setRightClickedImageId,
+  contextMenuPos,
+  setContextMenuPos,
+}: UseCanvasProps) => {
   const canvasRef = useRef<HTMLCanvasElement | null>(null);
   const [myStrokes, setMyStrokes] = useState<Stroke[]>([]);
   const [otherStrokes, setOtherStrokes] = useState<Stroke[]>([]);
@@ -26,22 +61,9 @@ const useCanvas = ({ user, roomId }: UseCanvasProps) => {
   );
   const currentStrokeRef = useRef<Stroke | null>(null);
   const [isDrawing, setIsDrawing] = useState(false);
-  const [imageObjs, setImageObjs] = useState<ImageObjType[]>([]);
-  const [draggingImageId, setDraggingImageId] = useState<string | null>(null);
-  const [dragOffset, setDragOffset] = useState<{ x: number; y: number }>({
-    x: 0,
-    y: 0,
-  });
+
   const [isImageDragMode, setIsImageDragMode] = useState(false); // 이미지드래그모드
   const [isDrawingMode, setIsDrawingMode] = useState(true); // 그리기모드인가?
-  const [selectedImageId, setSelectedImageId] = useState<string | null>(null); //선택된 이미지id
-  const [rightClickedImageId, setRightClickedImageId] = useState<string | null>(
-    null
-  );
-  const [contextMenuPos, setContextMenuPos] = useState<{
-    x: number;
-    y: number;
-  } | null>(null);
 
   const pushUndoStack = () => {
     if (!user) return;
@@ -288,70 +310,10 @@ const useCanvas = ({ user, roomId }: UseCanvasProps) => {
       ctx.stroke();
     });
   };
-  // 캔버스에서 마우스 오른쪽 클릭(컨텍스트 메뉴) 이벤트 처리
-  const handleContextMenu = (e: React.MouseEvent<HTMLCanvasElement>) => {
-    e.preventDefault(); // 브라우저 기본 오른쪽 클릭 메뉴를 막음
-
-    const { offsetX, offsetY } = e.nativeEvent; // 캔버스 내부 좌표 (이미지 클릭 여부 판단용)
-
-    // 이미지 리스트를 뒤에서부터 검사 (z-index가 높은 이미지부터)
-    const clickedImage = imageObjs
-      .slice() // 원본 배열 복사 (reverse로 손상 방지)
-      .reverse() // 위에 있는 이미지부터 클릭 판정
-      .find(
-        (img) =>
-          offsetX >= img.x &&
-          offsetX <= img.x + 150 &&
-          offsetY >= img.y &&
-          offsetY <= img.y + 150
-      ); // 클릭 좌표가 이미지 영역 내에 있는지 검사
-
-    if (clickedImage) {
-      // 이미지 위에서 클릭했을 경우
-      setRightClickedImageId(clickedImage.id); // 어떤 이미지를 클릭했는지 기억
-      setContextMenuPos({
-        x: clickedImage.x, // 이미지 오른쪽 위에 띄우기
-        y: clickedImage.y,
-      });
-    } else {
-      // 이미지 외부 클릭(땅 클릭) → 메뉴 닫기
-      setRightClickedImageId(null);
-      setContextMenuPos(null);
-    }
-  };
-
-  const handleDeleteImage = async () => {
-    if (!rightClickedImageId || !roomId) return;
-
-    try {
-      // 1️⃣ 서버에 삭제 요청
-      await fetch(`${SERVER_URL}/room/${roomId}/image/${rightClickedImageId}`, {
-        method: "DELETE",
-        credentials: "include",
-      });
-
-      // 2️⃣ 소켓으로 삭제 알림
-      socket.emit("deleteImage", {
-        roomId,
-        imageId: rightClickedImageId,
-      });
-
-      // 3️⃣ 내 화면에서도 삭제
-      setImageObjs((prev) =>
-        prev.filter((img) => img.id !== rightClickedImageId)
-      );
-    } catch (err) {
-      console.error("❌ 이미지 삭제 실패", err);
-    } finally {
-      // 4️⃣ 메뉴 닫기
-      setRightClickedImageId(null);
-      setContextMenuPos(null);
-    }
-  };
 
   useEffect(() => {
     redrawCanvas();
-  }, [myStrokes, otherStrokes, imageObjs, isImageDragMode, selectedImageId]);
+  }, [myStrokes, otherStrokes, imageObjs, selectedImageId]);
   return {
     // 📌 캔버스 참조
     canvasRef,
@@ -378,21 +340,6 @@ const useCanvas = ({ user, roomId }: UseCanvasProps) => {
     setIsDrawingMode,
     isImageDragMode,
     setIsImageDragMode,
-
-    // 🖼 이미지 관련
-    imageObjs,
-    setImageObjs,
-    setSelectedImageId,
-
-    // 🧭 컨텍스트 메뉴 (우클릭 삭제 등)
-    handleContextMenu,
-    rightClickedImageId,
-
-    //
-    contextMenuPos,
-    setRightClickedImageId,
-    setContextMenuPos,
-    handleDeleteImage,
   };
 };
 

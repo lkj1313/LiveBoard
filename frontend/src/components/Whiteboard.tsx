@@ -9,16 +9,32 @@ import useCanvas from "../hooks/useCanvas";
 import useSocketHandlers from "../hooks/useSocketHandlers";
 import useBackground from "../hooks/useBackground";
 import DrawingCanvas from "./DrawingCanvas";
+import useCanvasImages from "../hooks/useCanvasImages";
+import { ImageObjType } from "../type/Image";
 
 const Whiteboard = ({ roomName }: { roomName: string }) => {
   const [isErasing, setIsErasing] = useState(false);
+  const [imageObjs, setImageObjs] = useState<ImageObjType[]>([]);
+  const [selectedImageId, setSelectedImageId] = useState<string | null>(null);
+  const [draggingImageId, setDraggingImageId] = useState<string | null>(null);
+  const [dragOffset, setDragOffset] = useState<{ x: number; y: number }>({
+    x: 0,
+    y: 0,
+  });
+  const [rightClickedImageId, setRightClickedImageId] = useState<string | null>(
+    null
+  );
+  const [contextMenuPos, setContextMenuPos] = useState<{
+    x: number;
+    y: number;
+  } | null>(null);
 
   const user = useAuthStore((state) => state.user);
   const { id } = useParams();
 
   const roomId = id!;
 
-  // ✏️ 그린기 기능 (캔버스 관련 로직 + 상태)
+  /// 유즈캔버스
   const {
     // 📌 캔버스 참조
     canvasRef,
@@ -41,30 +57,51 @@ const Whiteboard = ({ roomName }: { roomName: string }) => {
     handleHover,
 
     // 🖼 이미지 관련
-    setImageObjs,
-    setSelectedImageId,
+
     isImageDragMode,
     setIsImageDragMode,
 
-    // 🧭 우클릭 컨텍스트 메뉴
-    handleContextMenu,
-    rightClickedImageId,
-    contextMenuPos, // ✅ 추가
-    setRightClickedImageId, // ✅ 추가
-    setContextMenuPos, // ✅ 추가
-    handleDeleteImage,
     // 🛠 도구 상태
     setIsDrawingMode,
-  } = useCanvas({ user, roomId });
+  } = useCanvas({
+    user,
+    roomId,
+    imageObjs,
+    setImageObjs,
+    selectedImageId,
+    setSelectedImageId,
+    draggingImageId,
+    setDraggingImageId,
+    dragOffset,
+    setDragOffset,
+    rightClickedImageId,
+    setRightClickedImageId,
+    contextMenuPos,
+    setContextMenuPos,
+  });
 
-  // 배경 (업로드, 사이즈, URL)
+  /// 유즈캔버스이미지지
+  const {
+    handleImageUpload,
+    handleContextMenu,
+    handleDeleteImage,
+    drawImagesToCanvas,
+  } = useCanvasImages(
+    roomId,
+    redrawCanvas, // ✅ () => void
+    imageObjs,
+    setImageObjs,
+    setRightClickedImageId,
+    setContextMenuPos
+  );
+  // 유즈캔 백그라운드
   const {
     backgroundUrl,
     setPdfSize,
-    handleFileUpload,
+    handlePdfUpload,
     clearBackground,
     fileName,
-  } = useBackground(roomId, redrawCanvas, setImageObjs);
+  } = useBackground(roomId);
 
   // 소켓 연결 & 실시간 동기화
   const { userList } = useSocketHandlers({
@@ -73,6 +110,12 @@ const Whiteboard = ({ roomName }: { roomName: string }) => {
     setOtherStrokes,
     setImageObjs,
   });
+
+  const userString =
+    userList && userList.length > 0
+      ? `${userList.join(", ")} 님(들)이 ${roomName}방에 입장하셨습니다!`
+      : "";
+
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
       if (e.ctrlKey && e.key === "z") undo();
@@ -93,12 +136,6 @@ const Whiteboard = ({ roomName }: { roomName: string }) => {
       window.removeEventListener("click", handleClickOutside);
     };
   }, []);
-
-  const userString =
-    userList && userList.length > 0
-      ? `${userList.join(", ")} 님(들)이 ${roomName}방에 입장하셨습니다!`
-      : "";
-
   return (
     <div className="w-full">
       {/* 입장문구 */}
@@ -130,7 +167,8 @@ const Whiteboard = ({ roomName }: { roomName: string }) => {
             setIsDrawingMode(false);
           }}
           onClear={clearCanvas}
-          onUpload={handleFileUpload}
+          onUploadPdf={handlePdfUpload}
+          onUploadImg={handleImageUpload}
           onClearBackground={clearBackground}
           fileName={fileName}
         />
@@ -162,13 +200,21 @@ const Whiteboard = ({ roomName }: { roomName: string }) => {
             // 👆 마우스 호버
             handleHover={handleHover}
             // 🧭 우클릭 메뉴
-            handleContextMenu={handleContextMenu}
+            handleContextMenu={(e) =>
+              handleContextMenu(e, setRightClickedImageId, setContextMenuPos)
+            }
             rightClickedImageId={rightClickedImageId}
             contextMenuPos={contextMenuPos}
             setImageObjs={setImageObjs}
             setRightClickedImageId={setRightClickedImageId}
             setContextMenuPos={setContextMenuPos}
-            handleDeleteImage={handleDeleteImage}
+            handleDeleteImage={() =>
+              handleDeleteImage(
+                rightClickedImageId,
+                setRightClickedImageId,
+                setContextMenuPos
+              )
+            }
           />
 
           {/* Hover 닉네임 */}

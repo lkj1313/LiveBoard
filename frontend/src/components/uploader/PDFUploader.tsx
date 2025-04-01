@@ -1,6 +1,6 @@
 import { useRef } from "react";
-import InputField from "./common/InputField";
-import Button from "./common/Button";
+import InputField from "../common/InputField";
+import Button from "../common/Button";
 
 interface UploadProps {
   onUpload: (e: React.ChangeEvent<HTMLInputElement>) => void;
@@ -8,7 +8,7 @@ interface UploadProps {
   fileName: string;
 }
 
-const FileUploader = ({ onUpload, onClear, fileName }: UploadProps) => {
+const PDFUploader = ({ onUpload, onClear, fileName }: UploadProps) => {
   const inputRef = useRef<HTMLInputElement | null>(null);
 
   const handleClick = () => {
@@ -25,7 +25,7 @@ const FileUploader = ({ onUpload, onClear, fileName }: UploadProps) => {
       className="relative border border-gray-300 rounded px-4 py-2 text-sm text-gray-700 bg-white w-fit min-w-[220px] cursor-pointer"
       onClick={handleClick}
     >
-      선택된 파일: {fileName}
+      선택된 PDF : {fileName}
       {/* X 버튼 (우측 상단) */}
       {fileName !== "선택된 파일 없음" && (
         <Button
@@ -56,4 +56,4 @@ const FileUploader = ({ onUpload, onClear, fileName }: UploadProps) => {
   );
 };
 
-export default FileUploader;
+export default PDFUploader;

@@ -19,17 +19,7 @@ const ChatBox = () => {
   const [input, setInput] = useState("");
   const user = useAuthStore((state) => state.user);
   const chatContainerRef = useRef<HTMLDivElement | null>(null);
-  console.log(roomId);
 
-  // 소켓 리스너 설정
-  useEffect(() => {
-    socket.on("chatMessage", (msg) => {
-      setMessages((prev) => [...prev, msg]);
-    });
-    return () => {
-      socket.off("chatMessage");
-    };
-  }, []);
   //  내가 보낼 때만 스크롤 내리기
   const scrollToBottom = () => {
     if (chatContainerRef.current) {
@@ -52,7 +42,15 @@ const ChatBox = () => {
     // 렌더 후 스크롤 - 약간 딜레이
     setTimeout(scrollToBottom, 50);
   };
-
+  // 소켓 리스너 설정
+  useEffect(() => {
+    socket.on("chatMessage", (msg) => {
+      setMessages((prev) => [...prev, msg]);
+    });
+    return () => {
+      socket.off("chatMessage");
+    };
+  }, []);
   return (
     <div className="fixed bottom-0 left-0 z-50 w-60">
       {/* 막대기 버튼 */}
