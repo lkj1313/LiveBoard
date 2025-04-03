@@ -1,26 +1,13 @@
-import { useState, useEffect } from "react";
-import { Link, Navigate, useNavigate } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import useAuthStore from "../store/authStore";
 import Button from "../components/common/Button";
-const SERVER_URL = import.meta.env.VITE_SERVER_URL;
+import { useRooms } from "../hooks/rooms/useRoom";
+import useLogout from "../hooks/auth/useLogout";
+
 const HomePage = () => {
-  const [rooms, setRooms] = useState<any[]>([]);
-  const navigate = useNavigate();
-  useEffect(() => {
-    fetch(`${SERVER_URL}/room/rooms`, {
-      method: "GET",
-      credentials: "include", // ✅ 쿠키 포함
-    })
-      .then((res) => res.json())
-      .then((data) => setRooms(data.rooms || [])) // rooms가 undefined일 경우 빈 배열로 처리
-      .catch((err) => console.error("방 목록 불러오기 실패", err));
-  }, []);
-  console.log(rooms);
-  const logout = useAuthStore((state) => state.logout);
-  const handleLogout = () => {
-    logout();
-    navigate("/");
-  };
+  const { rooms, error } = useRooms();
+  const handleLogout = useLogout();
+
   return (
     <div className="h-screen bg-gray-800 flex justify-center items-center">
       <div className="bg-gray-200 p-8 max-h-[480px] rounded-lg shadow-lg w-full max-w-md overflow-y-auto ">

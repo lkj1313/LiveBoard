@@ -1,39 +1,17 @@
 import { useState } from "react";
-import { useNavigate } from "react-router-dom";
-import useAuthStore from "../store/authStore";
 import InputField from "../components/common/InputField";
 import Button from "../components/common/Button";
-
-const SERVER_URL = import.meta.env.VITE_SERVER_URL;
+import useLogin from "../hooks/auth/useLogin";
+import { Link } from "react-router-dom";
 
 const LoginPage = () => {
   const [email, setEmail] = useState("test@naver.com");
   const [password, setPassword] = useState("123456");
-  const [error, setError] = useState<string | null>(null);
-  const setUser = useAuthStore((state) => state.setUser);
-  const navigate = useNavigate();
+  const { login, error } = useLogin();
 
-  const handleLogin = async (e: React.FormEvent) => {
+  const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    setError(null);
-
-    try {
-      const res = await fetch(`${SERVER_URL}/auth/login`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ email, password }),
-        credentials: "include",
-      });
-
-      const data = await res.json();
-      if (!res.ok) throw new Error(data.error);
-      setUser({ nickname: data.nickname, userId: data.userId });
-
-      alert("로그인 성공!");
-      navigate("/home");
-    } catch (err) {
-      setError(err instanceof Error ? err.message : "로그인 실패");
-    }
+    login(email, password);
   };
 
   return (
@@ -45,7 +23,7 @@ const LoginPage = () => {
 
         {error && <p className="text-red-500 text-center">{error}</p>}
 
-        <form className="space-y-4" onSubmit={handleLogin}>
+        <form className="space-y-4" onSubmit={handleSubmit}>
           <InputField
             id="email"
             label="이메일"
@@ -73,9 +51,9 @@ const LoginPage = () => {
 
         <p className="text-center text-gray-600 mt-4">
           계정이 없으신가요?{" "}
-          <a href="/register" className="text-blue-500 hover:underline">
+          <Link to="/register" className="text-blue-500 hover:underline">
             회원가입
-          </a>
+          </Link>
         </p>
       </div>
     </div>

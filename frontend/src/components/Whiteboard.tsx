@@ -80,18 +80,13 @@ const Whiteboard = ({ roomName }: { roomName: string }) => {
     setContextMenuPos,
   });
 
-  /// 유즈캔버스이미지지
+  /// 유즈캔버스이미지
   const {
     handleImageUpload,
     handleContextMenu,
     handleDeleteImage,
     isImageUploading,
-  } = useCanvasImages(
-    roomId,
-    redrawCanvas, // ✅ () => void
-    imageObjs,
-    setImageObjs
-  );
+  } = useCanvasImages(roomId, redrawCanvas, imageObjs, setImageObjs);
   // 유즈캔 백그라운드
   const {
     backgroundUrl,

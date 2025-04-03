@@ -3,13 +3,8 @@ import { socket, connectSocket } from "../utils/socket";
 import useAuthStore from "../store/authStore";
 import toast from "react-hot-toast";
 import Stroke from "../type/Stroke";
-type ImageObjType = {
-  img: HTMLImageElement;
-  x: number;
-  y: number;
-  isDragging: boolean;
-  id: string;
-};
+import { ImageObjType } from "../type/Image";
+
 interface UseSocketHandlersProps {
   roomId: string;
   setMyStrokes: React.Dispatch<React.SetStateAction<Stroke[]>>;
