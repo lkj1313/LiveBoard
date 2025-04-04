@@ -1,6 +1,6 @@
-import InputField from "./common/InputField";
-import Button from "./common/Button";
-import { useChatBox } from "../hooks/chat/useChatBox";
+import InputField from "../common/InputField";
+import Button from "../common/Button";
+import { useChatBox } from "../../hooks/chat/useChatBox";
 
 const ChatBox = () => {
   const {

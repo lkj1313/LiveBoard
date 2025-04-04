@@ -1,7 +1,7 @@
 import Whiteboard from "../components/Whiteboard";
 import { useLocation } from "react-router-dom";
 
-import ChatBox from "../components/ChatBox";
+import ChatBox from "../components/chat/ChatBox";
 
 const RoomPage = () => {
   const location = useLocation();
