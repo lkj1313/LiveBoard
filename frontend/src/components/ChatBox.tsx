@@ -1,59 +1,21 @@
-import { useEffect, useRef, useState } from "react";
-import { socket } from "../utils/socket";
-import { useParams } from "react-router-dom";
-import useAuthStore from "../store/authStore";
 import InputField from "./common/InputField";
 import Button from "./common/Button";
-type ChatMessage = {
-  user: {
-    userId: string;
-    nickname: string;
-  };
-  message: string;
-  timestamp: string;
-};
+import { useChatBox } from "../hooks/chat/useChatBox";
+
 const ChatBox = () => {
-  const { id: roomId } = useParams();
-  const [messages, setMessages] = useState<ChatMessage[]>([]);
-  const [isOpen, setIsOpen] = useState(false);
-  const [input, setInput] = useState("");
-  const user = useAuthStore((state) => state.user);
-  const chatContainerRef = useRef<HTMLDivElement | null>(null);
+  const {
+    isOpen,
+    setIsOpen,
+    messages,
+    input,
+    setInput,
+    handleSend,
+    chatContainerRef,
+  } = useChatBox();
 
-  //  내가 보낼 때만 스크롤 내리기
-  const scrollToBottom = () => {
-    if (chatContainerRef.current) {
-      chatContainerRef.current.scrollTop =
-        chatContainerRef.current.scrollHeight;
-    }
-  };
-  const handleSend = (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!input.trim() || !user) return;
-
-    socket.emit("chatMessage", {
-      roomId,
-      user,
-      message: input,
-    });
-
-    setInput("");
-
-    // 렌더 후 스크롤 - 약간 딜레이
-    setTimeout(scrollToBottom, 50);
-  };
-  // 소켓 리스너 설정
-  useEffect(() => {
-    socket.on("chatMessage", (msg) => {
-      setMessages((prev) => [...prev, msg]);
-    });
-    return () => {
-      socket.off("chatMessage");
-    };
-  }, []);
   return (
     <div className="fixed bottom-0 left-0 z-50 w-60">
-      {/* 막대기 버튼 */}
+      {/* 토글 버튼 */}
       <div
         className="bg-blue-600 text-white text-sm text-center py-1 rounded-t-lg cursor-pointer shadow-lg hover:bg-blue-700"
         onClick={() => setIsOpen((prev) => !prev)}
@@ -61,13 +23,12 @@ const ChatBox = () => {
         {isOpen ? "채팅 ▾" : "채팅 ▴"}
       </div>
 
-      {/*  채팅창 */}
+      {/* 채팅창 */}
       <div
         className={`bg-white rounded-t-lg shadow-lg transition-all duration-300 overflow-hidden ${
           isOpen ? "opacity-100" : "opacity-0 max-h-0"
         } flex flex-col`}
       >
-        {/* 채팅 내용 */}
         <div
           ref={chatContainerRef}
           className="p-2 text-sm overflow-y-auto"
@@ -81,7 +42,6 @@ const ChatBox = () => {
           ))}
         </div>
 
-        {/* 입력창 */}
         <form onSubmit={handleSend} className="flex border-t text-sm">
           <InputField
             label=""
@@ -90,7 +50,7 @@ const ChatBox = () => {
             value={input}
             onChange={(e) => setInput(e.target.value)}
             required={false}
-            className="flex-1 p-2" // ✅ 스타일 적용
+            className="flex-1 p-2"
           />
           <Button
             type="submit"
