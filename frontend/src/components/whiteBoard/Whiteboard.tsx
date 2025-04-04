@@ -1,16 +1,17 @@
-import { useEffect, useState } from "react";
+import { useState } from "react";
 
-import useAuthStore from "../store/authStore";
+import useAuthStore from "../../store/authStore";
 import { useParams } from "react-router-dom";
 
-import PDFRenderer from "../components/PDFRenderer";
+import PDFViewer from "./PDFViewer";
 import Toolbar from "./Toolbar";
-import useCanvas from "../hooks/useCanvas";
-import useSocketHandlers from "../hooks/useSocketHandlers";
-import usePdfImage from "../hooks/usePdfImage";
+import useCanvas from "../../hooks/whiteBoard/useCanvas";
+import useSocketHandlers from "../../hooks/whiteBoard/useSocketHandlers";
+import usePdfImage from "../../hooks/whiteBoard/usePdfImage";
 import DrawingCanvas from "./DrawingCanvas";
-import useCanvasImages from "../hooks/useCanvasImages";
-import { ImageObjType } from "../type/Image";
+import useCanvasImages from "../../hooks/whiteBoard/useCanvasImages";
+import { ImageObjType } from "../../type/Image";
+import useWhiteboardEvents from "../../hooks/whiteBoard/useWhiteboardEvents";
 
 const Whiteboard = ({ roomName }: { roomName: string }) => {
   const [isErasing, setIsErasing] = useState(false);
@@ -99,34 +100,16 @@ const Whiteboard = ({ roomName }: { roomName: string }) => {
     setImageObjs,
   });
 
+  // ctrl + z 누를시 undo() 실행
+  useWhiteboardEvents({
+    undo,
+    setContextMenuPos,
+    setRightClickedImageId,
+  });
   const userString =
     userList && userList.length > 0
       ? `${userList.join(", ")} 님(들)이 ${roomName}방에 입장하셨습니다!`
       : "";
-
-  // ctrl + z 누를시 undo() 실행
-  useEffect(() => {
-    const handleKeyDown = (e: KeyboardEvent) => {
-      if (e.ctrlKey && e.key === "z") undo();
-    };
-    window.addEventListener("keydown", handleKeyDown);
-    return () => window.removeEventListener("keydown", handleKeyDown);
-  }, [undo]);
-
-  useEffect(() => {
-    // 캔버스 외부를 클릭했을 때 컨텍스트 메뉴 닫기
-    const handleClickOutside = () => {
-      setRightClickedImageId(null); // 우클릭된 이미지 ID 초기화
-      setContextMenuPos(null); // 컨텍스트 메뉴 위치 초기화
-    };
-
-    window.addEventListener("click", handleClickOutside);
-
-    return () => {
-      window.removeEventListener("click", handleClickOutside); // 컴포넌트 언마운트 시 이벤트 제거
-    };
-  }, []);
-
   return (
     <div className="w-full">
       {/* 입장문구 */}
@@ -172,7 +155,7 @@ const Whiteboard = ({ roomName }: { roomName: string }) => {
             </div>
           )}
           {pdfUrl?.includes(".pdf") && (
-            <PDFRenderer
+            <PDFViewer
               url={pdfUrl}
               onSizeChange={setPdfSize}
               myStrokes={myStrokes}

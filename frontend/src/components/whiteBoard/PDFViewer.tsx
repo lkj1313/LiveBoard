@@ -1,8 +1,8 @@
 import { Document, Page, pdfjs } from "react-pdf";
 import "core-js/full/promise/with-resolvers.js";
-import Button from "./common/Button";
-import { usePdfViewer } from "../hooks/PDF/usePdfViewer";
-import Stroke from "../type/Stroke";
+import Button from "../common/Button";
+import { usePdfViewer } from "../../hooks/whiteBoard/usePdfViewer";
+import Stroke from "../../type/Stroke";
 pdfjs.GlobalWorkerOptions.workerSrc = new URL(
   "pdfjs-dist/legacy/build/pdf.worker.min.mjs",
   import.meta.url

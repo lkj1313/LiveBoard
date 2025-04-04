@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from "react";
-import { socket } from "../utils/socket";
-import Stroke from "../type/Stroke";
+import { socket } from "../../utils/socket";
+import Stroke from "../../type/Stroke";
 const SERVER_URL = import.meta.env.VITE_SERVER_URL;
 interface UseCanvasProps {
   user: { userId: string; nickname: string } | null;
@@ -139,7 +139,6 @@ const useCanvas = ({
 
     if (!isImageDragMode && !isErasing && !isDrawingMode) {
       const clickedImage = getClickedImage();
-      console.log("드로잉", isDrawingMode);
 
       if (clickedImage) {
         if (selectedImageId !== clickedImage.id) {

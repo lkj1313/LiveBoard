@@ -1,4 +1,4 @@
-import Whiteboard from "../components/Whiteboard";
+import Whiteboard from "../components/whiteBoard/Whiteboard";
 import { useLocation } from "react-router-dom";
 
 import ChatBox from "../components/chat/ChatBox";

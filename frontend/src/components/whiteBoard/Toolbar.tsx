@@ -1,8 +1,8 @@
 // components/Toolbar.tsx
 import React from "react";
-import Button from "./common/Button";
-import PDFUploader from "./uploader/PDFUploader";
-import ImageUploader from "./uploader/ImageUploader";
+import Button from "../common/Button";
+import PDFUploader from "../uploader/PDFUploader";
+import ImageUploader from "../uploader/ImageUploader";
 
 interface ToolbarProps {
   fileName: string;

@@ -1,7 +1,7 @@
 import { ref, uploadBytes, getDownloadURL } from "firebase/storage";
-import { storage } from "../utils/firebase";
-import { socket } from "../utils/socket";
-import { ImageObjType } from "../type/Image";
+import { storage } from "../../utils/firebase";
+import { socket } from "../../utils/socket";
+import { ImageObjType } from "../../type/Image";
 import { useState } from "react";
 
 const SERVER_URL = import.meta.env.VITE_SERVER_URL;
@@ -13,7 +13,7 @@ const useCanvasImages = (
   setImageObjs: React.Dispatch<React.SetStateAction<ImageObjType[]>>
 ) => {
   const [isImageUploading, setIsImageUploading] = useState(false);
-  // ✅ 이미지 업로드
+  //  이미지 업로드 함수
   const handleImageUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file) return;
@@ -66,12 +66,12 @@ const useCanvasImages = (
         console.error("❌ 이미지 저장 에러:", err);
         alert("이미지 저장 중 오류가 발생했습니다. 다시 시도해주세요.");
       } finally {
-        setIsImageUploading(false); // ✅ 업로드 완료
+        setIsImageUploading(false); //
       }
     };
   };
 
-  // ✅ 우클릭 시 컨텍스트 메뉴 처리
+  // 우클릭 시 컨텍스트 메뉴 처리
   const handleContextMenu = (
     e: React.MouseEvent<HTMLCanvasElement>,
     setRightClickedImageId: (id: string | null) => void,
@@ -100,7 +100,7 @@ const useCanvasImages = (
     }
   };
 
-  // ✅ 이미지 삭제
+  //  이미지 삭제 함수
   const handleDeleteImage = async (
     rightClickedImageId: string | null,
     setRightClickedImageId: (id: string | null) => void,

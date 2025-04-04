@@ -1,9 +1,9 @@
 import { useEffect, useState } from "react";
-import { socket, connectSocket } from "../utils/socket";
-import useAuthStore from "../store/authStore";
+import { socket, connectSocket } from "../../utils/socket";
+import useAuthStore from "../../store/authStore";
 import toast from "react-hot-toast";
-import Stroke from "../type/Stroke";
-import { ImageObjType } from "../type/Image";
+import Stroke from "../../type/Stroke";
+import { ImageObjType } from "../../type/Image";
 
 interface UseSocketHandlersProps {
   roomId: string;

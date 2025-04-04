@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { ref, uploadBytes, getDownloadURL } from "firebase/storage";
-import { storage } from "../utils/firebase";
+import { storage } from "../../utils/firebase";
 
 const SERVER_URL = import.meta.env.VITE_SERVER_URL;
 
