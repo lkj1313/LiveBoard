@@ -13,7 +13,7 @@ export const canvasSocketHandler = (io) => {
       socket.join(roomId);
       console.log(`🚪 ${socket.id} joined room ${roomId}`);
 
-      // 💾 닉네임 저장
+      //  닉네임 저장
       const users = roomUsers.get(roomId) || [];
       roomUsers.set(roomId, [...users, { socketId: socket.id, nickname }]);
 
@@ -28,13 +28,13 @@ export const canvasSocketHandler = (io) => {
 
       // 기존 선 불러오기
       try {
-        // 🔹 1. strokes (from Drawing)
+        //  1. strokes (from Drawing)
         const drawing = await Drawing.findOne({ roomId });
         if (drawing) {
           socket.emit("loadDrawings", drawing.strokes);
         }
 
-        // 🔹 2. canvasImages (from Room)
+        //  2. canvasImages (from Room)
         const room = await Room.findById(roomId);
         if (room?.canvasImages?.length > 0) {
           socket.emit("loadCanvasImages", room.canvasImages);
@@ -44,7 +44,7 @@ export const canvasSocketHandler = (io) => {
       }
     });
 
-    // ✅ 그리기
+    //  그리기
     socket.on("draw", async ({ roomId, stroke }) => {
       try {
         await Drawing.findOneAndUpdate(
@@ -61,7 +61,7 @@ export const canvasSocketHandler = (io) => {
     socket.on("moveImage", ({ roomId, imageId, x, y }) => {
       socket.to(roomId).emit("moveImage", { imageId, x, y });
     });
-    // ✅ 지우기
+    //  지우기
     socket.on("erase", async ({ roomId, userId, x, y }) => {
       try {
         await Drawing.updateOne(

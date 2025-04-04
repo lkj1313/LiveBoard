@@ -1,12 +1,6 @@
 import React, { useEffect } from "react";
 import Button from "./common/Button";
-type ImageObjType = {
-  img: HTMLImageElement;
-  x: number;
-  y: number;
-  isDragging: boolean;
-  id: string;
-};
+import { ImageObjType } from "../type/Image";
 interface DrawingCanvasProps {
   canvasRef: React.RefObject<HTMLCanvasElement | null>;
   isErasing: boolean;

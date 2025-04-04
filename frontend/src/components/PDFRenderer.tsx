@@ -1,13 +1,12 @@
-import { useEffect, useState } from "react";
 import { Document, Page, pdfjs } from "react-pdf";
 import "core-js/full/promise/with-resolvers.js";
 import Button from "./common/Button";
+import { usePdfViewer } from "../hooks/PDF/usePdfViewer";
 import Stroke from "../type/Stroke";
 pdfjs.GlobalWorkerOptions.workerSrc = new URL(
   "pdfjs-dist/legacy/build/pdf.worker.min.mjs",
   import.meta.url
 ).toString();
-
 interface PDFViewerProps {
   url: string;
   onSizeChange?: (size: { width: number; height: number }) => void;
@@ -16,27 +15,15 @@ interface PDFViewerProps {
   otherStrokes: Stroke[];
 }
 const PDFViewer = ({ url, onSizeChange }: PDFViewerProps) => {
-  const [numPages, setNumPages] = useState<number>();
-  const [currentPage, setCurrentPage] = useState(1);
-  const [pdfBlob, setPdfBlob] = useState<Blob | null>(null);
-
-  useEffect(() => {
-    const fetchPDF = async () => {
-      const res = await fetch(url);
-      const blob = await res.blob();
-      setPdfBlob(blob);
-    };
-    fetchPDF();
-  }, [url]);
-
-  const goPrev = () => {
-    if (currentPage > 1) setCurrentPage(currentPage - 1);
-  };
-
-  const goNext = () => {
-    if (numPages && currentPage < numPages) setCurrentPage(currentPage + 1);
-  };
-
+  const {
+    pdfBlob, // 가져온 PDF 데이터를 Blob 형태로 저장한 상태
+    numPages, // PDF의 총 페이지 수
+    currentPage, // 현재 보고 있는 페이지 번호
+    goPrev, // 이전 페이지로 이동하는 함수
+    goNext, // 다음 페이지로 이동하는 함수
+    setNumPages, // PDF 로드 성공 시 페이지 수 설정하는 함수
+    handleSizeChange, // PDF 페이지 렌더링 후 사이즈 변경 콜백 처리 함수
+  } = usePdfViewer(url, onSizeChange);
   return (
     <div className="flex flex-col items-center gap-4">
       {pdfBlob && (
@@ -48,9 +35,7 @@ const PDFViewer = ({ url, onSizeChange }: PDFViewerProps) => {
           <Page
             pageNumber={currentPage}
             height={1000}
-            onRenderSuccess={({ width, height }) => {
-              onSizeChange?.({ width, height });
-            }}
+            onRenderSuccess={handleSizeChange}
           />
         </Document>
       )}
@@ -61,7 +46,7 @@ const PDFViewer = ({ url, onSizeChange }: PDFViewerProps) => {
           onClick={goPrev}
           disabled={currentPage <= 1}
           variant="secondary"
-          className="px-4 py-2 "
+          className="px-4 py-2"
         >
           이전
         </Button>
@@ -72,7 +57,7 @@ const PDFViewer = ({ url, onSizeChange }: PDFViewerProps) => {
           onClick={goNext}
           disabled={currentPage >= (numPages || 0)}
           variant="secondary"
-          className="px-4 py-2 "
+          className="px-4 py-2"
         >
           다음
         </Button>
