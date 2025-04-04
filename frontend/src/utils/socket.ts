@@ -8,7 +8,7 @@ const serverUrl = isLocalhost
   ? "http://localhost:4000"
   : import.meta.env.VITE_SERVER_URL;
 
-// 소켓 인스턴스 생성 (자동 연결은 꺼둠)
+/// 소켓 인스턴스 생성 (자동 연결은 꺼둠)
 export const socket = io(serverUrl, {
   autoConnect: false, // 명시적으로 연결할 때만 연결되도록 설정
 });
