@@ -7,7 +7,7 @@ import PDFRenderer from "../components/PDFRenderer";
 import Toolbar from "./Toolbar";
 import useCanvas from "../hooks/useCanvas";
 import useSocketHandlers from "../hooks/useSocketHandlers";
-import useBackground from "../hooks/useBackground";
+import usePdfImage from "../hooks/usePdfImage";
 import DrawingCanvas from "./DrawingCanvas";
 import useCanvasImages from "../hooks/useCanvasImages";
 import { ImageObjType } from "../type/Image";
@@ -88,13 +88,8 @@ const Whiteboard = ({ roomName }: { roomName: string }) => {
     isImageUploading,
   } = useCanvasImages(roomId, redrawCanvas, imageObjs, setImageObjs);
   // 유즈캔 백그라운드
-  const {
-    backgroundUrl,
-    setPdfSize,
-    handlePdfUpload,
-    clearBackground,
-    fileName,
-  } = useBackground(roomId);
+  const { pdfUrl, setPdfSize, handlePdfUpload, clearBackground, fileName } =
+    usePdfImage(roomId);
 
   // 소켓 연결 & 실시간 동기화
   const { userList } = useSocketHandlers({
@@ -176,9 +171,9 @@ const Whiteboard = ({ roomName }: { roomName: string }) => {
               Img Loading...
             </div>
           )}
-          {backgroundUrl?.includes(".pdf") && (
+          {pdfUrl?.includes(".pdf") && (
             <PDFRenderer
-              url={backgroundUrl}
+              url={pdfUrl}
               onSizeChange={setPdfSize}
               myStrokes={myStrokes}
               otherStrokes={otherStrokes}

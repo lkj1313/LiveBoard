@@ -19,7 +19,7 @@ export const useChatBox = () => {
         chatContainerRef.current.scrollHeight;
     }
   };
-
+  console.log(user);
   const handleSend = (e: React.FormEvent) => {
     e.preventDefault();
     if (!input.trim() || !user) return;

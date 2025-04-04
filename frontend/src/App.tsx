@@ -1,5 +1,5 @@
 import Router from "./routes/Router";
-import { useEffect, useState } from "react";
+import { useEffect } from "react";
 import { Toaster } from "react-hot-toast";
 import useAuthStore from "./store/authStore";
 const SERVER_URL = import.meta.env.VITE_SERVER_URL;

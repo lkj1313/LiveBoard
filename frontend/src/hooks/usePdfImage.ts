@@ -4,8 +4,8 @@ import { storage } from "../utils/firebase";
 
 const SERVER_URL = import.meta.env.VITE_SERVER_URL;
 
-const useBackground = (roomId: string | undefined) => {
-  const [backgroundUrl, setBackgroundUrl] = useState<string | null>(null);
+const usePdfImage = (roomId: string | undefined) => {
+  const [pdfUrl, setPdfUrl] = useState<string | null>(null);
   const [pdfSize, setPdfSize] = useState({ width: 1000, height: 1000 });
   const [fileName, setFileName] = useState("선택된 파일 없음");
   const handlePdfUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -17,7 +17,7 @@ const useBackground = (roomId: string | undefined) => {
       await uploadBytes(storageRef, file);
       const url = await getDownloadURL(storageRef);
 
-      setBackgroundUrl(url);
+      setPdfUrl(url);
       setFileName(file.name);
 
       if (!roomId) return;
@@ -40,7 +40,7 @@ const useBackground = (roomId: string | undefined) => {
   };
 
   const clearBackground = async () => {
-    setBackgroundUrl(null); // 화면에서 제거
+    setPdfUrl(null); // 화면에서 제거
     setFileName("선택된 파일 없음"); // ✅ 파일명 초기화
 
     if (!roomId) return;
@@ -67,7 +67,7 @@ const useBackground = (roomId: string | undefined) => {
       const data = await res.json();
 
       if (data.backgroundUrl) {
-        setBackgroundUrl(data.backgroundUrl);
+        setPdfUrl(data.backgroundUrl);
 
         // ✅ 파일명 추출
         const name = data.backgroundUrl.split("/").pop()?.split("?")[0] || "";
@@ -79,7 +79,7 @@ const useBackground = (roomId: string | undefined) => {
   }, [roomId]);
 
   return {
-    backgroundUrl,
+    pdfUrl,
     setPdfSize,
     pdfSize,
     handlePdfUpload,
@@ -88,4 +88,4 @@ const useBackground = (roomId: string | undefined) => {
   };
 };
 
-export default useBackground;
+export default usePdfImage;
