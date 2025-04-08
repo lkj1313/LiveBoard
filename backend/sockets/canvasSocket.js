@@ -3,13 +3,12 @@ import Room from "../models/Room.js";
 
 // ✅ 닉네임 목록 추적용 (roomId → [{ socketId, nickname }])
 const roomUsers = new Map();
-
+const now = new Date().toLocaleTimeString("ko-KR", {
+  timeZone: "Asia/Seoul",
+});
 export const canvasSocketHandler = (io) => {
   io.on("connection", (socket) => {
-    console.log(
-      `✅ [${new Date().toLocaleTimeString()}] 클라이언트 연결됨:`,
-      socket.id
-    );
+    console.log(`✅ [${now}] 클라이언트 연결됨:`, socket.id);
 
     // ✅ join 이벤트 (roomId + nickname 전달받기)
     socket.on("join", async ({ roomId, nickname }) => {
