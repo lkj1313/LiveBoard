@@ -1,5 +1,3 @@
-import React from "react";
-
 const ImagePreview = ({ src }: { src: string }) => {
   return (
     <div className="mt-4">

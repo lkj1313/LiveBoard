@@ -6,7 +6,10 @@ const roomUsers = new Map();
 
 export const canvasSocketHandler = (io) => {
   io.on("connection", (socket) => {
-    console.log("✅ 클라이언트 연결됨:", socket.id);
+    console.log(
+      `✅ [${new Date().toLocaleTimeString()}] 클라이언트 연결됨:`,
+      socket.id
+    );
 
     // ✅ join 이벤트 (roomId + nickname 전달받기)
     socket.on("join", async ({ roomId, nickname }) => {
@@ -125,7 +128,6 @@ export const canvasSocketHandler = (io) => {
     // ✅ 이미지 삽입 (실시간 공유)
     socket.on("addImage", ({ roomId, id, url, x, y }) => {
       socket.to(roomId).emit("newImage", { id, url, x, y });
-      console.log("삽입완료");
     });
     // ✅ 이미지 삭제
     socket.on("deleteImage", ({ roomId, imageId }) => {
